@@ -125,14 +125,8 @@ $(SSD_MODEL_GEN_C): GenSSDTile
 SSD_model: $(SSD_MODEL_GEN_C)
 	cd SSDParamsGenerator && $(MAKE) all run
 
-#################
-
-libshutterless:
-	cd shutterless && riscv32-unknown-elf-gcc $(TCFLAGS) -lm -I$(TILER_INC) -I$(GAP_SDK_HOME)/install/GAP8_V2/include -include $(GAP_SDK_HOME)/install/GAP8_V2/include/rt/chips/gap/config.h -c PreFiltering.c && riscv32-unknown-elf-ar rcs libshutterless.a PreFiltering.o
-
-
 # all depends on the model
-all:: SSD_model model libshutterless prepare_debug
+all:: SSD_model model prepare_debug
 
 clean_all: clean_model clean
 	rm -rf BUILD*
