@@ -10,13 +10,13 @@
 
 ##  if you want to test the application with an input file from host PC use this flag:
 ##  Note that in this case the shutterless filtering is desactivated:
-#GAP_FLAGS += -DINPUT_FILE
+GAP_FLAGS += -DINPUT_FILE
 ##  To save output results to host PC
 ##  This is usefull for application debug
-#SAVE_TO_PC=1
+SAVE_TO_PC=1
 ##  In full demo mode ble should be activated and silent as well, since printfs block the execution if set over jtag
 ##  To disable all printf (needed to flash application to boot from flash):
-GAP_FLAGS += -DSILENT=1
+#GAP_FLAGS += -DSILENT=1
 ##  To enable Ble communication (with the demo android app):
 #GAP_FLAGS += -DUSE_BLE
 ##  To take an image as reference offset at every boot you can use the following flags:

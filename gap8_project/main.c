@@ -715,7 +715,7 @@ int peopleDetection()
         pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         pi_perf_reset(); pi_perf_start();
         
-        if(preFiltering_fixed(ImageIn, img_offset,15)){
+        if(preFiltering_float(ImageIn, img_offset,15)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
@@ -726,9 +726,8 @@ int peopleDetection()
         #endif
         PRINTF("Call cluster\n");
         pi_cluster_send_task_to_cl(&cluster_dev, task);
-        pi_cluster_close(&cluster_dev);
 
-        #if defined(SAVE_TO_PC)
+        #if defined(iterate)
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
         unsigned char *img_out_ptr = ImageIn;
@@ -741,14 +740,13 @@ int peopleDetection()
         #if defined USE_BLE
         sendResultsToBle(&bbxs);
         #ifndef SAVE_TO_PC
-        pi_time_wait_us(1 * 1000 * 1000);
+        pi_time_wait_us(2 * 1000 * 1000);
         #endif
         #endif
 
         //This is not the optimized deep sleep, when should take care of pad setting in sleep
         //and to properly shutdown all external devices
         //go_to_sleep();
-        return;   
     }
 
     lynredCNN_Destruct();
