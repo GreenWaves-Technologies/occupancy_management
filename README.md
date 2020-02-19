@@ -21,7 +21,7 @@ https://github.com/GreenWaves-Technologies/gap_sdk
 
 If you do not have a GAPoC_B board and you want to run the demo you can try it with input and output images from the host pc using the GVSoC simulator that comes within the sdk.
 
-Before running the code you have to source the sourceme file contained in the sdk. If you have a GAPoC B board (or run it one GVSoC):
+Before running the code you have to source the sourceme file contained in the sdk. If you have a GAPoC B board (or run it on GVSoC):
 
 ```
  $ source [root_sdk_folder]/configs/gapoc_b_v2.sh
