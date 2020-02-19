@@ -20,7 +20,7 @@ SAVE_TO_PC=1
 ##  To enable Ble communication (with the demo android app):
 #GAP_FLAGS += -DUSE_BLE
 ##  To take an image as reference offset at every boot you can use the following flags:
-#GAP_FLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1 
+#GAP_FLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1
 
 #######################################
 
@@ -76,10 +76,10 @@ APP = PeopleDetection
 
 APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_SRCS) SSDBasicKernels.c $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
-GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns 
+GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns
 GAP_FLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD)
 APP_LDFLAGS += -L$(PWD)/shutterless/ -lshutterless -lm
-APP_INC += 
+APP_INC +=
 
 BOARD_NAME = gapoc_b
 PMSIS_OS  ?= pulpos
@@ -132,8 +132,7 @@ clean_all: clean_model clean
 	rm -rf BUILD*
 	cd SSDParamsGenerator && $(MAKE) clean
 
-.PHONY: clean_all 
+.PHONY: clean_all
 
 include model_rules.mk
 include $(RULES_DIR)/pmsis_rules.mk
-
