@@ -9,6 +9,7 @@ This repository contains a reference platform for indoor occupancy management th
 3. **calibration**   : This project is meant to retrieve an offset image for you Thermeye camera sensor.
 4. **dataset_tools** : Tools to collect a dataset with the board and to filter images.
 5. **gap8_project**  : Gap8 Application source code
+6. **ssd_train**  : CNN training and fine tuning
 
 
 ## Getting Started
@@ -125,3 +126,5 @@ In the folder dataset_collection you have two subfolders that contain:
 ## 3D Case Printing
 
 In the folder 3D_case you have two STL files that you can use to 3d print a case for the GAPoC B board.
+
+

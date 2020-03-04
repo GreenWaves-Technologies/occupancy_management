@@ -1,10 +1,17 @@
 /*
- * Copyright (C) 2020 GreenWaves Technologies
- * All rights reserved.
+ * Copyright 2020 GreenWaves Technologies, SAS
  *
- * This software may be modified and distributed under the terms
- * of the BSD license.  See the LICENSE file for details.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <stdio.h>
@@ -28,10 +35,6 @@
 #include "ImageDraw.h"
 #include "setup.h"
 
-/*#if defined(__PULP_OS__)
-#include "bridge_stubs.h"
-#endif
-*/
 #define STACK_SIZE           1024*2 //This is for PE0   (Master)
 #define SLAVE_STACK_SIZE     1024 //This is for PE1-7 (Slaves)
 #define MOUNT           1
@@ -241,8 +244,8 @@ void printBboxes_forPython(bboxs_t *boundbxs){
     }//
 }
 
-int rect_intersect_area( unsigned short a_x, unsigned short a_y, unsigned short a_w, unsigned short a_h,
-                         unsigned short b_x, unsigned short b_y, unsigned short b_w, unsigned short b_h ){
+int rect_intersect_area( short a_x, short a_y, short a_w, short a_h,
+                         short b_x, short b_y, short b_w, short b_h ){
 
     #define MIN(a,b) ((a) < (b) ? (a) : (b))
     #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -357,95 +360,27 @@ static void RunNN()
     //SSD Code
     /////////////////////
 
-    //#define NAIF
-    //#define OLD_PRE_DEC
-
     //Set Boundinx Boxes to 0
     bbxs.num_bb = 0;
     //TODO Add a check to be sure that ssd L1 is smaller than L1
     SSDKernels_L1_Memory = L1_Memory;
     
-    //Processing Classes
-    #ifdef NAIF
-    //SDD3Dto2DSoftmax(output1,tmp_buffer_classes,40,40,16,2,12);
-    //SDD3Dto2D(output5,tmp_buffer_boxes,40,40,32,4);
-    
-    #else    
+    //Processing Classes and Boxes
     SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,12,2);
     SDD3Dto2D_40_40_32(output5,tmp_buffer_boxes,0,0);
-    #endif
-
-
-    #ifdef __EMUL__
-    //PreDecoder(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_2, &bbxs);
-    #else
-    #ifdef OLD_PRE_DEC
-    //PreDecoder_fixp(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_2, &bbxs);
-    #else
     Predecoder40_40(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_2, &bbxs,12);
-    #endif
-    #endif
 
-    
-    #ifdef NAIF
-    //SDD3Dto2DSoftmax(output2,tmp_buffer_classes,20,20,16,2,11);
-    //SDD3Dto2D(output6,tmp_buffer_boxes, 20,20,32,4);
-    
-    #else
     SDD3Dto2DSoftmax_20_20_16(output2,tmp_buffer_classes,12,2);
     SDD3Dto2D_20_20_32(output6,tmp_buffer_boxes,0,0);
-    
-    #endif
-
-    #ifdef __EMUL__
-    //PreDecoder(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs);
-    #else
-    #ifdef OLD_PRE_DEC
-    //PreDecoder_fixp(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs);
-    #else
     Predecoder20_20(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs,11);
-    #endif
-    #endif
-    
-    
-    
-    #ifdef NAIF
-    //SDD3Dto2DSoftmax(output3,tmp_buffer_classes,10,10,16,2,11);
-    //SDD3Dto2D(output7,tmp_buffer_boxes,10,10,32,4);
-    #else
+
     SDD3Dto2DSoftmax_10_10_16(output3,tmp_buffer_classes,12,2);
     SDD3Dto2D_10_10_32(output7,tmp_buffer_boxes,0,0);
-    
-    #endif
-
-    #ifdef __EMUL__
-    //PreDecoder(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs);
-    #else
-    #ifdef OLD_PRE_DEC    
-    //PreDecoder_fixp(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs);
-    #else
     Predecoder10_10(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs,12);
-    #endif
-    #endif
 
-    
-    #ifdef NAIF
-    //SDD3Dto2DSoftmax(output4,tmp_buffer_classes,5,5,16,2,11);
-    //SDD3Dto2D(output8,tmp_buffer_boxes,5,5,32,4);
-    #else
     SDD3Dto2DSoftmax_5_5_16(output4,tmp_buffer_classes,12,2);
     SDD3Dto2D_5_5_32(output8,tmp_buffer_boxes,0,0);
-    #endif
-
-    #ifdef __EMUL__
-    //PreDecoder(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs);
-    #else
-    #ifdef OLD_PRE_DEC    
-    //PreDecoder_fixp(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs);
-    #else
     Predecoder5_5(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs,13);
-    #endif
-    #endif
 
 
     bbox_t temp;
@@ -579,7 +514,8 @@ int peopleDetection()
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,120000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,50000000);
+    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
 
     unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(IMAGE_IN_T));
     if (ImageInChar == 0)
@@ -657,9 +593,7 @@ int peopleDetection()
         PRINTF("Thermal Eye camera open failed !\n");
         pmsis_exit(-1);
     }
-    
-    //This is important to make the Hyperbus working for the CNN
-    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
+    pi_time_wait_us(2 * 1000 * 1000);
 
     #ifdef OFFSET_IMAGE_EVERY_BOOT
     //This taking the offset each time we turn on the board
@@ -673,7 +607,6 @@ int peopleDetection()
     PRINTF("Offset image taken!\n");
     #endif
     #endif
-
 
     #ifdef USE_BLE
     PRINTF("Init BLE\n");
