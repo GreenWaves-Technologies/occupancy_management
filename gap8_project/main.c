@@ -366,21 +366,21 @@ static void RunNN()
     SSDKernels_L1_Memory = L1_Memory;
     
     //Processing Classes and Boxes
-    SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,12,2);
+    SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,OUTPUT1_Q,2);
     SDD3Dto2D_40_40_32(output5,tmp_buffer_boxes,0,0);
-    Predecoder40_40(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_2, &bbxs,12);
+    Predecoder40_40(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_2, &bbxs,OUTPUT5_Q);
 
-    SDD3Dto2DSoftmax_20_20_16(output2,tmp_buffer_classes,12,2);
+    SDD3Dto2DSoftmax_20_20_16(output2,tmp_buffer_classes,OUTPUT2_Q,2);
     SDD3Dto2D_20_20_32(output6,tmp_buffer_boxes,0,0);
-    Predecoder20_20(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs,11);
+    Predecoder20_20(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs,OUTPUT6_Q);
 
-    SDD3Dto2DSoftmax_10_10_16(output3,tmp_buffer_classes,12,2);
+    SDD3Dto2DSoftmax_10_10_16(output3,tmp_buffer_classes,OUTPUT3_Q,2);
     SDD3Dto2D_10_10_32(output7,tmp_buffer_boxes,0,0);
-    Predecoder10_10(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs,12);
+    Predecoder10_10(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs,OUTPUT7_Q);
 
-    SDD3Dto2DSoftmax_5_5_16(output4,tmp_buffer_classes,12,2);
+    SDD3Dto2DSoftmax_5_5_16(output4,tmp_buffer_classes,OUTPUT4_Q,2);
     SDD3Dto2D_5_5_32(output8,tmp_buffer_boxes,0,0);
-    Predecoder5_5(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs,13);
+    Predecoder5_5(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs,OUTPUT8_Q);
 
 
     bbox_t temp;
@@ -490,7 +490,7 @@ void go_to_sleep(){
 }
 
 
-int peopleDetection()
+void peopleDetection(void)
 {
     char *ImageName = "../../../samples/im4.pgm";
 
@@ -537,7 +537,7 @@ int peopleDetection()
     
     for (int i = W * H - 1; i >= 0; i--)
     {
-        ImageIn[i] = ImageInChar[i] << 7; //Input is Q15
+        ImageIn[i] = ImageInChar[i] << INPUT1_Q - 8; //Input is naturally a Q8
     }
 
     #else
@@ -664,7 +664,7 @@ int peopleDetection()
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
         unsigned char *img_out_ptr = ImageIn;
-        for(int i=0;i<W*H;i++) img_out_ptr[i] = (uint8_t) (ImageIn[i] >> 7);
+        for(int i=0;i<W*H;i++) img_out_ptr[i] = (uint8_t) (ImageIn[i] >> (INPUT1_Q - 8));
         drawBboxes(&bbxs,img_out_ptr);
         WriteImageToFile(string_buffer, W, H, img_out_ptr);
         save_index++;
@@ -688,7 +688,7 @@ int peopleDetection()
     pi_cluster_close(&cluster_dev);
     
     PRINTF("Ended\n");
-    return 0;
+    pmsis_exit(0);
 }
 
 

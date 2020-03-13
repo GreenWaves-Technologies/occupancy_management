@@ -5,24 +5,24 @@
 # of the BSD license.  See the LICENSE file for details.
 
 MODEL_PREFIX=lynred
-ifndef MNIST_BITS
-  MNIST_BITS=16
+ifndef NN_BITS
+  NN_BITS=16
 endif
 
 # LINK_IMAGE=samples/5223_5.pgm
 
-$(info Building emulation mode with $(MNIST_BITS) bit quantization)
+$(info Building emulation mode with $(NN_BITS) bit quantization)
 
 # The training of the model is slightly different depending on
 # the quantization. This is because in 8 bit mode we used signed
 # 8 bit so the input to the model needs to be shifted 1 bit
-ifeq ($(MNIST_BITS),8)
-  CFLAGS += -DMNIST_8BIT
+ifeq ($(NN_BITS),8)
+  CFLAGS += -DNN_8BIT
   NNTOOL_SCRIPT=model/nntool_script8
   MODEL_SUFFIX = _EMUL8BIT
 else
-  ifeq ($(MNIST_BITS),16)
-    CFLAGS += -DMNIST_16BIT
+  ifeq ($(NN_BITS),16)
+    CFLAGS += -DNN_16BIT
     NNTOOL_SCRIPT=model/nntool_script16
     MODEL_SUFFIX = _EMUL16BIT
   else

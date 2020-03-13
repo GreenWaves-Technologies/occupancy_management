@@ -14,8 +14,8 @@ void SDD3Dto2DSoftmax_40_40_16(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -53,9 +53,9 @@ void SDD3Dto2DSoftmax_40_40_16(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=592; _SN_In=9472;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 3200, 592, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+592), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 3200, 592, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 3200, 592, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+592), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 3200, 592, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 9472, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=9472;
 	_SPP_Out=0; _SP_Out=0;
@@ -71,10 +71,10 @@ void SDD3Dto2DSoftmax_40_40_16(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472*((T0Ind_Total)%2)),
-					_SNN_In, 3200, _LNN_In, 0, &Uchan1);
+					_SNN_In, 3200, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -91,9 +91,9 @@ void SDD3Dto2DSoftmax_40_40_16(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+18944+9472*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -112,9 +112,9 @@ void SDD3Dto2DSoftmax_40_40_16(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void SDD3Dto2D_40_40_32(
@@ -128,8 +128,8 @@ void SDD3Dto2D_40_40_32(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -167,9 +167,9 @@ void SDD3Dto2D_40_40_32(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=296; _SN_In=9472;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 3200, 296, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+296), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 3200, 296, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 3200, 296, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+296), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 3200, 296, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 9472, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=9472;
 	_SPP_Out=0; _SP_Out=0;
@@ -185,10 +185,10 @@ void SDD3Dto2D_40_40_32(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472*((T0Ind_Total)%2)),
-					_SNN_In, 3200, _LNN_In, 0, &Uchan1);
+					_SNN_In, 3200, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -205,9 +205,9 @@ void SDD3Dto2D_40_40_32(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+18944+9472*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -226,9 +226,9 @@ void SDD3Dto2D_40_40_32(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void Predecoder40_40(
@@ -243,8 +243,8 @@ void Predecoder40_40(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerPredecoderShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -283,14 +283,14 @@ void Predecoder40_40(
 	KerArg0->n_classes = (unsigned int ) (2);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_Classes=6332; _SN_Classes=6332;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6332, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+6332), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332), 6332, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6332, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+6332), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332), 6332, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 6332, 0, &DmaR_Evt1);
 	_NN_Boxes=12664; _SN_Boxes=12664;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), 12664, 0, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+12664), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664), 12664, 0, &Uchan2);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), 12664, 0, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+12664), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664), 12664, 0, &UchanHR2);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+12664+0), 12664, 0, &DmaR_Evt2);
 	/*============================= End Read Tiles Prolog ===============================*/
 	for (T0Ind=0; T0Ind<9; T0Ind++, T0Ind_Total++) { /* Iteration on Tile0 */
@@ -310,20 +310,20 @@ void Predecoder40_40(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 		if (_SNN_Classes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+_NN_Classes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332*((T0Ind_Total)%2)),
-					_SNN_Classes, 0, &Uchan1);
+					_SNN_Classes, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Classes */
 		if (_SN_Classes) {
 			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+6332*((T0Ind_Total+1)%2)),
 					_SN_Classes, 0, &DmaR_Evt1);
 		}
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 		if (_SNN_Boxes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+_NN_Boxes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664*((T0Ind_Total)%2)),
-					_SNN_Boxes, 0, &Uchan2);
+					_SNN_Boxes, 0, &UchanHR2);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Boxes */
 		if (_SN_Boxes) {
@@ -357,8 +357,8 @@ void SDD3Dto2DSoftmax_20_20_16(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -396,9 +396,9 @@ void SDD3Dto2DSoftmax_20_20_16(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=592; _SN_In=3328;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 800, 592, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+592), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 3328, 800, 208, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 800, 592, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+592), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 3328, 800, 208, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 9472, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=9472;
 	_SPP_Out=0; _SP_Out=0;
@@ -414,10 +414,10 @@ void SDD3Dto2DSoftmax_20_20_16(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472*((T0Ind_Total)%2)),
-					_SNN_In, 800, _LNN_In, 0, &Uchan1);
+					_SNN_In, 800, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -434,9 +434,9 @@ void SDD3Dto2DSoftmax_20_20_16(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+18944+9472*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -455,9 +455,9 @@ void SDD3Dto2DSoftmax_20_20_16(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void SDD3Dto2D_20_20_32(
@@ -471,8 +471,8 @@ void SDD3Dto2D_20_20_32(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -510,9 +510,9 @@ void SDD3Dto2D_20_20_32(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=296; _SN_In=9472;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 800, 296, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+296), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 800, 296, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 9472, 800, 296, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+296), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472), 9472, 800, 296, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 9472, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=9472;
 	_SPP_Out=0; _SP_Out=0;
@@ -528,10 +528,10 @@ void SDD3Dto2D_20_20_32(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+9472*((T0Ind_Total)%2)),
-					_SNN_In, 800, _LNN_In, 0, &Uchan1);
+					_SNN_In, 800, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -548,9 +548,9 @@ void SDD3Dto2D_20_20_32(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+18944+9472*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -569,9 +569,9 @@ void SDD3Dto2D_20_20_32(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+18944+9472*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void Predecoder20_20(
@@ -586,8 +586,8 @@ void Predecoder20_20(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerPredecoderShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -626,14 +626,14 @@ void Predecoder20_20(
 	KerArg0->n_classes = (unsigned int ) (2);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_Classes=6332; _SN_Classes=6332;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6332, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+6332), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332), 6332, 0, &Uchan1);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6332, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+6332), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332), 6332, 0, &UchanHR1);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 6332, 0, &DmaR_Evt1);
 	_NN_Boxes=12664; _SN_Boxes=12664;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), 12664, 0, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+12664), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664), 12664, 0, &Uchan2);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), 12664, 0, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+12664), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664), 12664, 0, &UchanHR2);
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+12664+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+12664+0), 12664, 0, &DmaR_Evt2);
 	/*============================= End Read Tiles Prolog ===============================*/
 	for (T0Ind=0; T0Ind<3; T0Ind++, T0Ind_Total++) { /* Iteration on Tile0 */
@@ -653,20 +653,20 @@ void Predecoder20_20(
 		}
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 		if (_SNN_Classes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+_NN_Classes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332*((T0Ind_Total)%2)),
-					_SNN_Classes, 0, &Uchan1);
+					_SNN_Classes, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Classes */
 		if (_SN_Classes) {
 			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+6332*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+6332*((T0Ind_Total+1)%2)),
 					_SN_Classes, 0, &DmaR_Evt1);
 		}
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 		if (_SNN_Boxes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+_NN_Boxes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12664+12664*((T0Ind_Total)%2)),
-					_SNN_Boxes, 0, &Uchan2);
+					_SNN_Boxes, 0, &UchanHR2);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Boxes */
 		if (_SN_Boxes) {
@@ -700,8 +700,8 @@ void SDD3Dto2DSoftmax_10_10_16(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -741,8 +741,8 @@ void SDD3Dto2DSoftmax_10_10_16(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=0; _SN_In=0;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 3200, 200, 200, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 3200, 200, 200, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 3200, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=3200;
 	_SPP_Out=0; _SP_Out=0;
@@ -754,10 +754,10 @@ void SDD3Dto2DSoftmax_10_10_16(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+3200*((T0Ind_Total)%2)),
-					_SNN_In, 200, _LNN_In, 0, &Uchan1);
+					_SNN_In, 200, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -772,9 +772,9 @@ void SDD3Dto2DSoftmax_10_10_16(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+3200*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+6400+3200*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+6400+3200*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -792,9 +792,9 @@ void SDD3Dto2DSoftmax_10_10_16(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+3200*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+3200*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void SDD3Dto2D_10_10_32(
@@ -808,8 +808,8 @@ void SDD3Dto2D_10_10_32(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -849,8 +849,8 @@ void SDD3Dto2D_10_10_32(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=0; _SN_In=0;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6400, 200, 200, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 6400, 200, 200, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 6400, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=6400;
 	_SPP_Out=0; _SP_Out=0;
@@ -862,10 +862,10 @@ void SDD3Dto2D_10_10_32(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+6400*((T0Ind_Total)%2)),
-					_SNN_In, 200, _LNN_In, 0, &Uchan1);
+					_SNN_In, 200, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -880,9 +880,9 @@ void SDD3Dto2D_10_10_32(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12800+6400*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+12800+6400*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+12800+6400*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -900,9 +900,9 @@ void SDD3Dto2D_10_10_32(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12800+6400*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+12800+6400*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void Predecoder10_10(
@@ -917,8 +917,8 @@ void Predecoder10_10(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerPredecoderShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -958,12 +958,12 @@ void Predecoder10_10(
 	KerArg0->n_classes = (unsigned int ) (2);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_Classes=0; _SN_Classes=0;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 3200, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 3200, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 3200, 0, &DmaR_Evt1);
 	_NN_Boxes=0; _SN_Boxes=0;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+0), 6400, 0, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+0), 6400, 0, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+6400+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+6400+0), 6400, 0, &DmaR_Evt2);
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on Tile0 */
@@ -975,20 +975,20 @@ void Predecoder10_10(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 		if (_SNN_Classes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+_NN_Classes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+3200*((T0Ind_Total)%2)),
-					_SNN_Classes, 0, &Uchan1);
+					_SNN_Classes, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Classes */
 		if (_SN_Classes) {
 			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+3200*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+3200*((T0Ind_Total+1)%2)),
 					_SN_Classes, 0, &DmaR_Evt1);
 		}
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 		if (_SNN_Boxes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+_NN_Boxes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+6400+6400*((T0Ind_Total)%2)),
-					_SNN_Boxes, 0, &Uchan2);
+					_SNN_Boxes, 0, &UchanHR2);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Boxes */
 		if (_SN_Boxes) {
@@ -1022,8 +1022,8 @@ void SDD3Dto2DSoftmax_5_5_16(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -1063,8 +1063,8 @@ void SDD3Dto2DSoftmax_5_5_16(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=0; _SN_In=0;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 800, 50, 50, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 800, 50, 50, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 800, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=800;
 	_SPP_Out=0; _SP_Out=0;
@@ -1076,10 +1076,10 @@ void SDD3Dto2DSoftmax_5_5_16(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+800*((T0Ind_Total)%2)),
-					_SNN_In, 50, _LNN_In, 0, &Uchan1);
+					_SNN_In, 50, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -1094,9 +1094,9 @@ void SDD3Dto2DSoftmax_5_5_16(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+800*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+1600+800*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+1600+800*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -1114,9 +1114,9 @@ void SDD3Dto2DSoftmax_5_5_16(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+800*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+800*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void SDD3Dto2D_5_5_32(
@@ -1130,8 +1130,8 @@ void SDD3Dto2D_5_5_32(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerSDD3Dto2DShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -1171,8 +1171,8 @@ void SDD3Dto2D_5_5_32(
 	KerArg0->n_classes = (unsigned short) (n_classes);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_In=0; _SN_In=0;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 1600, 50, 50, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 1600, 50, 50, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 1600, 0, &DmaR_Evt1);
 	_C_Out=0; _SC_Out=1600;
 	_SPP_Out=0; _SP_Out=0;
@@ -1184,10 +1184,10 @@ void SDD3Dto2D_5_5_32(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read In */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 		if (_SNN_In) {
 			AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+1600*((T0Ind_Total)%2)),
-					_SNN_In, 50, _LNN_In, 0, &Uchan1);
+					_SNN_In, 50, _LNN_In, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 		if (_SN_In) {
@@ -1202,9 +1202,9 @@ void SDD3Dto2D_5_5_32(
 		__CALL(KerSDD3Dto2DShort, KerArg0);
 		/*================================= Write Tiles =====================================*/
 		if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
+		if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 		if (_SP_Out) AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+3200+1600*((T0Ind_Total+-1)%2)),
-					_SP_Out, 1, &Uchan2);
+					_SP_Out, 1, &UchanHR2);
 		AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+3200+1600*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+3200+1600*((T0Ind_Total)%2)),
 				_SC_Out, 1, &DmaW_Evt1);
 		/*============================= End Write Tiles =====================================*/
@@ -1222,9 +1222,9 @@ void SDD3Dto2D_5_5_32(
 	} /* End iteration on Tile0 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+3200+1600*((T0Ind_Total+-1)%2)), _SP_Out, 1, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+3200+1600*((T0Ind_Total+-1)%2)), _SP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void Predecoder5_5(
@@ -1239,8 +1239,8 @@ void Predecoder5_5(
 	/* Local variables used by this kernel */
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
-	AT_HYPERRAM_CL_EVENT Uchan1;
-	AT_HYPERRAM_CL_EVENT Uchan2;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
+	AT_HYPERRAM_CL_EVENT UchanHR2;
 	KerPredecoderShort_ArgT S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -1280,12 +1280,12 @@ void Predecoder5_5(
 	KerArg0->n_classes = (unsigned int ) (2);
 	/*================================= Read Tiles Prolog ===============================*/
 	_NN_Classes=0; _SN_Classes=0;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 800, 0, &Uchan1);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), 800, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+0), 800, 0, &DmaR_Evt1);
 	_NN_Boxes=0; _SN_Boxes=0;
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+0), 1600, 0, &Uchan2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+0), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+0), 1600, 0, &UchanHR2);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+1600+0), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+1600+0), 1600, 0, &DmaR_Evt2);
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on Tile0 */
@@ -1297,20 +1297,20 @@ void Predecoder5_5(
 		
 		/*============================= End Prepare Tiles ===================================*/
 		/*================================= Read Tiles ======================================*/
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan1); /* Wait previous uDMA read Classes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Classes */
 		if (_SNN_Classes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Classes+_NN_Classes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+0+800*((T0Ind_Total)%2)),
-					_SNN_Classes, 0, &Uchan1);
+					_SNN_Classes, 0, &UchanHR1);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Classes */
 		if (_SN_Classes) {
 			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) SSDKernels_L2_Memory+0+800*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) SSDKernels_L1_Memory+0+800*((T0Ind_Total+1)%2)),
 					_SN_Classes, 0, &DmaR_Evt1);
 		}
-		AT_HYPERRAM_CL_WAIT(&HyperRam, &Uchan2); /* Wait previous uDMA read Boxes */
+		AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA read Boxes */
 		if (_SNN_Boxes) {
 			AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Boxes+_NN_Boxes), ((AT_HYPERRAM_INT_ADDR_TYPE) SSDKernels_L2_Memory+1600+1600*((T0Ind_Total)%2)),
-					_SNN_Boxes, 0, &Uchan2);
+					_SNN_Boxes, 0, &UchanHR2);
 		}
 		AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Boxes */
 		if (_SN_Boxes) {

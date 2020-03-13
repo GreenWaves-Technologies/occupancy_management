@@ -29,11 +29,11 @@ ifndef GAP_SDK_HOME
 endif
 
 MODEL_PREFIX=lynred
-ifndef MNIST_BITS
-	MNIST_BITS=16
+ifndef NN_BITS
+	NN_BITS=16
 endif
 
-$(info Building GAP8 mode with $(MNIST_BITS) bit quantization)
+$(info Building GAP8 mode with $(NN_BITS) bit quantization)
 
 # For debugging don't load an image
 # Run the network with zeros
@@ -42,13 +42,13 @@ $(info Building GAP8 mode with $(MNIST_BITS) bit quantization)
 # The training of the model is slightly different depending on
 # the quantization. This is because in 8 bit mode we used signed
 # 8 bit so the input to the model needs to be shifted 1 bit
-ifeq ($(MNIST_BITS),8)
-	GAP_FLAGS += -DMNIST_8BIT
+ifeq ($(NN_BITS),8)
+	GAP_FLAGS += -DNN_8BIT
 	NNTOOL_SCRIPT=model/nntool_script8
 	MODEL_SUFFIX = _8BIT
 else
-	ifeq ($(MNIST_BITS),16)
-		GAP_FLAGS += -DMNIST_16BIT
+	ifeq ($(NN_BITS),16)
+		GAP_FLAGS += -DNN_16BIT
 		NNTOOL_SCRIPT=model/nntool_script16
 		MODEL_SUFFIX = _16BIT
 	else
