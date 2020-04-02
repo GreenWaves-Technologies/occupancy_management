@@ -20,7 +20,6 @@
 #include "lynredKernels.h"
 #include "SSDKernels.h"
 #include "SSDParams.h"
-#include "im2.h"
 #include "pmsis.h"
 #include "bsp/bsp.h"
 #include "bsp/gapoc_b_v2.h"
@@ -453,7 +452,6 @@ void sendResultsToBle(bboxs_t *boundbxs){
     //printf("\n");
     //printf("String Size: %d\n",stringLenght);
 
-    //TODO ADD conversion and Block minimum trheshol to 0.10
     dt = handleDetections(bleDetString,stringLenght);
     if(dt<10)dt=10;
     if(dt!=old_dt){

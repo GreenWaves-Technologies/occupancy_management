@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2020 GreenWaves Technologies
+ * All rights reserved.
+ *
+ *
+ */
 
 
 int32_t preFiltering_fixed(uint16_t* img_input_fp16,uint16_t* img_offset_fp16,uint8_t q_output);
