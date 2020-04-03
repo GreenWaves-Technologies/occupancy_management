@@ -24,6 +24,9 @@ SAVE_TO_PC=1
 
 #######################################
 
+
+MAKEFILE_PATH := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
 ifndef GAP_SDK_HOME
 	$(error Source sourceme in gap_sdk first)
 endif
@@ -78,7 +81,7 @@ APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_SRCS) SSDBasicKernels.c $(SSD_MOD
 
 GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns 
 GAP_FLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD)
-APP_LDFLAGS += -L$(PWD)/shutterless/ -lshutterless -lm
+APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
 APP_INC += 
 
 BOARD_NAME = gapoc_b
