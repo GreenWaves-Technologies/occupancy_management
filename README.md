@@ -2,6 +2,8 @@
 
 This repository contains a reference platform for indoor occupancy management that runs on Greenwaves [GAPoC_B evaluation board](https://greenwaves-technologies.com/product/gappoc-b-occupancy-management-reference-platform/).
 
+To see how to install and use our reference platform you can refer to this [video](https://www.youtube.com/watch?v=NDgnNjm8TaI)
+
 ## Repository Content Description:
 
 1. **3D Case**       : CAD STL files for 3D case printing
