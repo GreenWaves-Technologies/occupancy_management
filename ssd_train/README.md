@@ -11,7 +11,7 @@ The repository contains 3 Jupiter Notebooks:
 
 Download the dataset: 
 ```
-$ wget **PUT_TE_FINAL_URL_HERE**
+$ wget https://gwt-website-files.s3.eu-central-1.amazonaws.com/occupancy_management_dataset.zip
 $ unzip data.zip
 ```
 
