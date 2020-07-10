@@ -585,6 +585,12 @@ void peopleDetection(void)
     pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
     pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
+    //Pad Workaround:
+    uint32_t* reg1= 0x1A104140;
+    uint32_t* reg2= 0x1A104144;
+    uint32_t* reg3= 0x1A104148;
+    *reg2 = 0xf411000;
+
     #ifndef INPUT_FILE
     if (open_camera_thermeye(&cam))
     {
