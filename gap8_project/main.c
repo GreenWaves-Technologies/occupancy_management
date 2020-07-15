@@ -444,7 +444,6 @@ void sendResultsToBle(bboxs_t *boundbxs){
         }
     }
 
-    //stringLenght+=sprintf(tmpString,"Gap8 Power Consuption %f mW/FPS",((float)(1/(50000000.f/12000000)) * 16.800));   
     stringLenght+=sprintf(tmpString,"A Project from GreenWaves and Lynred");
     strcat(bleDetString,tmpString);
 
@@ -652,7 +651,7 @@ void peopleDetection(void)
         pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         pi_perf_reset(); pi_perf_start();
         
-        if(preFiltering_float(ImageIn, img_offset,15)){
+        if(preFiltering_fixed(ImageIn, img_offset,15)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
