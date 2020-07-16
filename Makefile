@@ -3,6 +3,9 @@ export SHUTTERLESS_LIB=libshutterless.${LIB_VER}.a
 export SHUTTERLESS_LIB_URL=.shutterless_url
 
 
+jenkins:
+	cd gap8_project && make all && make run
+
 all: gap8_project/shutterless/libshutterless.a
 
 clean:
@@ -19,4 +22,4 @@ gap8_project/shutterless/libshutterless.a: $(SHUTTERLESS_LIB_URL)
 	rm -rf gap8_project/shutterless/lib*
 	./download_lib_shutterless.sh
 
-.PHONY: all clean
+.PHONY: all clean  jenkins
