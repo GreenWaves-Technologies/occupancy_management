@@ -20,10 +20,6 @@
 #define PRINTF printf
 #endif  /* DEBUG */
 
-//#define INPUT_FILE
-//#define SAVE_TO_PC
-//#define USE_BLE
-
 #define MAX_OUT_BB 10
 #define NON_MAX_THRES 70
-#define MAX_BB 100
+#define MAX_BB 200

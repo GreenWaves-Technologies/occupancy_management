@@ -28,7 +28,8 @@
 #include "bsp/flash/hyperflash.h"
 #include "bsp/camera/thermeye.h"
 
-
+#include "bsp/fs.h"
+#include <bsp/fs/hostfs.h>
 
 #include "shutterless/PreFiltering.h"
 #include "ImageDraw.h"
@@ -46,9 +47,7 @@ struct pi_device HyperRam;
 static struct pi_hyperram_conf conf;
 AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash = 0;
 
-
 #define FIX2FP(Val, Precision)    ((float) (Val) / (float) (1<<(Precision)))
-
 
 // Softmax always outputs Q15 short int even from 8 bit input
 short int *output8, *output1, *output2, *output3, *output4, *output5, *output6, *output7,*tmp_buffer_classes,*tmp_buffer_boxes;
@@ -56,12 +55,12 @@ short int *output8, *output1, *output2, *output3, *output4, *output5, *output6, 
 
 PI_L2 unsigned short *img_offset;
 
-typedef short int IMAGE_IN_T;
+typedef unsigned short int IMAGE_IN_T;
 
 #define BUFFER_SIZE 1024
 static struct pi_device cam;
 
-L2_MEM unsigned short *ImageIn;
+PI_L2 unsigned short *ImageIn;
 
 extern PI_L2 Alps * anchor_layer_2;
 extern PI_L2 Alps * anchor_layer_3;
@@ -85,7 +84,6 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
     }
     
     pi_fs_conf_init(&conf);
-    
     
     //conf.type = PI_FS_HOST;
     conf.flash = flash;
@@ -125,7 +123,6 @@ static int initNN(){
     char *name = "Calibration.bin";
     int32_t size = 0;
     uint32_t size_total = 0;
-
 
     img_offset  = (unsigned short int *) pmsis_l2_malloc(80 * 80 * sizeof(unsigned short int)); 
     char * buff =  img_offset;
@@ -396,13 +393,10 @@ static void RunNN()
         }
     }while(changed);
 
-    
     convertCoordBboxes(&bbxs,80);
     non_max_suppress(&bbxs);
-    
 
     ti_ssd = gap_cl_readhwtimer()-ti_nn-ti;
-
     
     #if !defined SILENT
         
@@ -444,6 +438,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
         }
     }
 
+    //stringLenght+=sprintf(tmpString,"Gap8 Power Consuption %f mW/FPS",((float)(1/(50000000.f/12000000)) * 16.800));   
     stringLenght+=sprintf(tmpString,"A Project from GreenWaves and Lynred");
     strcat(bleDetString,tmpString);
 
@@ -462,6 +457,46 @@ void sendResultsToBle(bboxs_t *boundbxs){
         anchor_layer_5->confidence_thr = FP2FIX(thres,15);
 
     }
+}
+
+int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
+    struct pi_fs_conf conf;
+    static struct pi_device fs;
+    static pi_fs_file_t *file;
+    unsigned int ReadSize=0;
+
+    pi_fs_conf_init(&conf);
+    conf.type = PI_FS_HOST;
+    pi_open_from_conf(&fs, &conf);
+    
+    if (pi_fs_mount(&fs))
+        return -2;
+
+    file = pi_fs_open(&fs, filename, PI_FS_FLAGS_READ);
+    if (file == NULL) return -3;
+
+
+    {
+        char *TargetImg = buffer;
+        unsigned int RemainSize = w*h*sizeof(uint16_t);
+        
+        while (RemainSize > 0)
+        {
+            unsigned int Chunk = Min(4096, RemainSize);
+            unsigned R = pi_fs_read(file,TargetImg, Chunk);
+            ReadSize+=R;
+            if (R!=Chunk) break;
+            TargetImg += Chunk; RemainSize -= Chunk;
+        }
+    }
+
+    pi_fs_close(file);
+    pi_fs_unmount(&fs);
+    
+    printf("Image %s, [W: %d, H: %d], Gray, Size: %d bytes, Loaded sucessfully\n", filename, w, h, ReadSize);
+
+    return 0;
+
 }
 
 #define RTC_TIME 5
@@ -486,32 +521,34 @@ void go_to_sleep(){
 
 }
 
+#define USER_GPIO 18
 
 void peopleDetection(void)
 {
     char *ImageName = "../../../samples/im4.pgm";
+    char *RawImageName = "../../../raw_samples/dump_out_imgs/img_0016.bin";
 
     //To configure and use User LED
     //pi_pad_e pad = (GPIO_USER_LED >> PI_GPIO_NUM_SHIFT);
     //uint32_t pin = (GPIO_USER_LED & PI_GPIO_NUM_MASK);
     //pi_pad_set_function(pad, PI_PAD_FUNC0);
     //pi_gpio_pin_configure(NULL, GPIO_USER_LED, PI_GPIO_OUTPUT);
-    
+    //pi_gpio_pin_write(NULL, GPIO_USER_LED, 1);
+
     //To configure and use CONN3 pin8 on Gapoc_b boards
     //That is connected to pad 24 gpio18 of Gap8
     //this can be use as analysis pin (i.e. connect and external osilloscope and check chip activity)
-    //pi_pad_set_function(24, 1);
-    //pi_gpio_pin_configure(NULL, 18, PI_GPIO_OUTPUT);
-    //pi_gpio_pin_write(NULL, 18, 1);
-    //pi_gpio_pin_write(NULL, GPIO_USER_LED, 1);
-
+    //pi_pad_set_function(PI_PAD_32_A13_TIMER0_CH1, PI_PAD_32_A13_GPIO_A18_FUNC1);
+    //pi_gpio_pin_configure(NULL, USER_GPIO, PI_GPIO_OUTPUT);
+    //pi_gpio_pin_write(NULL, USER_GPIO, 1);
+    
     unsigned int Wi, Hi;
     //Input image size
     unsigned int W = 80, H = 80;
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,50000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,100000000);
     pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
 
     unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(IMAGE_IN_T));
@@ -520,6 +557,7 @@ void peopleDetection(void)
         PRINTF("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
         return 1;
     }
+    ImageIn = (IMAGE_IN_T *)ImageInChar;
     
     #ifdef INPUT_FILE
     //Reading Image from Bridge
@@ -530,16 +568,20 @@ void peopleDetection(void)
         pmsis_exit(-1);
     }
     
-    ImageIn = (IMAGE_IN_T *)ImageInChar;
     
     for (int i = W * H - 1; i >= 0; i--)
     {
         ImageIn[i] = ImageInChar[i] << INPUT1_Q - 8; //Input is naturally a Q8
     }
 
-    #else
-    ImageIn = (IMAGE_IN_T *)ImageInChar;
+    #elif defined INPUT_RAW_FILE
+    //Load 16 bits raw image
+    if(read_raw_image(RawImageName, ImageIn,W,H)){
+        PRINTF("Failed to load raw image\n");
+        pmsis_exit(-1);
+    }
     #endif
+    
 
     /* Configure And open cluster. */
     struct pi_device cluster_dev;
@@ -552,7 +594,7 @@ void peopleDetection(void)
         pmsis_exit(-7);
     }
     
-    PRINTF("Init\n");
+    PRINTF("Init NN\n");
     if(initNN())
     {
         PRINTF("NN Init exited with an error\n");
@@ -585,18 +627,24 @@ void peopleDetection(void)
     pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     //Pad Workaround:
+ 
+    #if !defined(INPUT_RAW_FILE) && !defined(INPUT_FILE)
+    PRINTF("Opening camera\n");
     uint32_t* reg1= 0x1A104140;
     uint32_t* reg2= 0x1A104144;
     uint32_t* reg3= 0x1A104148;
+    //printf("Pad settings: %x %x %x\n",*reg1, *reg2, *reg3);
+    //bug workaround
     *reg2 = 0xf411000;
-
-    #ifndef INPUT_FILE
     if (open_camera_thermeye(&cam))
     {
         PRINTF("Thermal Eye camera open failed !\n");
         pmsis_exit(-1);
     }
-    pi_time_wait_us(2 * 1000 * 1000);
+    printf("Pad settings: %x %x %x\n",*reg1, *reg2, *reg3);
+    //bug workaround
+    *reg3 = 0x3fffff;
+    //pi_time_wait_us(2 * 1000 * 1000);
 
     #ifdef OFFSET_IMAGE_EVERY_BOOT
     //This taking the offset each time we turn on the board
@@ -627,7 +675,7 @@ void peopleDetection(void)
     struct pi_cluster_task *task = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
     if(task==NULL) {
         PRINTF("Alloc Error! \n");
-        return 0;
+        pmsis_exit(-7);
     }
     memset(task, 0, sizeof(struct pi_cluster_task));
     task->entry = RunNN;
@@ -639,31 +687,38 @@ void peopleDetection(void)
     char iterate=1;
     while(iterate){
 
-        #ifdef INPUT_FILE
+
+        #if defined(INPUT_RAW_FILE) || defined(INPUT_FILE)
         iterate=0;
         #else
         PRINTF("Taking Picture!\n");
+        //pi_gpio_pin_write(NULL, USER_GPIO, 0);
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
-        pi_camera_capture(&cam, ImageIn, W*H * sizeof(uint16_t));
+        pi_camera_capture(&cam, ImageIn, W*H*sizeof(uint16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
-
-        PRINTF("Calling shutterless filtering\n");
-        pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
-        pi_perf_reset(); pi_perf_start();
+        #endif
         
-        if(preFiltering_fixed(ImageIn, img_offset,15)){
+        #ifndef INPUT_FILE
+
+        //PRINTF("Calling shutterless filtering\n");
+        //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
+        //pi_perf_reset(); pi_perf_start();
+        
+        if(preFiltering_fixed(ImageIn, img_offset,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
-        pi_perf_stop();
-        int Ti = pi_perf_read(PI_PERF_ACTIVE_CYCLES);
-        PRINTF("Cycles shutterless: %10d\n",Ti);
+        //pi_perf_stop();
+        //int Ti = pi_perf_read(PI_PERF_ACTIVE_CYCLES);
+        //PRINTF("Cycles shutterless: %10d\n",Ti);
         
         #endif
         PRINTF("Call cluster\n");
+        //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         pi_cluster_send_task_to_cl(&cluster_dev, task);
 
-        #if defined(iterate)
+        
+        #ifdef SAVE_TO_PC
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
         unsigned char *img_out_ptr = ImageIn;

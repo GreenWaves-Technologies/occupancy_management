@@ -1,2 +1,2 @@
-# People Detection SSD Build using GAPFlow
+# Occupancy Detection Demo code
 

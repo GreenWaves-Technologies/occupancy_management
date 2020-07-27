@@ -22,13 +22,6 @@ ifndef MODEL_PREFIX
   MODEL_PREFIX=GapFlow
 endif
 
-USE_DISP?=0
-ifdef USE_DISP
-  SDL_FLAGS= -lSDL2_ttf -LSDL2_image -lSDL2 
-else
-  SDL_FLAGS=
-endif
-
 MODEL_PYTHON=python
 
 # Increase this to improve accuracy
