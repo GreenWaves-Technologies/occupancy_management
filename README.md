@@ -34,7 +34,7 @@ Before running the code you have to source the sourceme file contained in the sd
 To download the precompiled shutterless library (only needed to run demo using input from Thermal Camera) you have to run make in the root folder of this repository:
 
 ```
- $ make
+ $ make all
 ```
 
 You will be asked to enter your details and will receive a link to copy/paste in your shell. 
