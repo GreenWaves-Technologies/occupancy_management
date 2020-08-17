@@ -19,7 +19,7 @@ ifndef MODEL_SUFFIX
 endif
 
 ifndef MODEL_PREFIX
-  MODEL_PREFIX=GapFlow
+  MODEL_PREFIX=lynred
 endif
 
 MODEL_PYTHON=python
@@ -39,20 +39,12 @@ MODEL_GEN = $(MODEL_BUILD)/$(MODEL_PREFIX)Kernels
 MODEL_GEN_C = $(addsuffix .c, $(MODEL_GEN))
 MODEL_GEN_CLEAN = $(MODEL_GEN_C) $(addsuffix .h, $(MODEL_GEN))
 MODEL_GEN_EXE = ./GenTile
-ifndef NNTOOL_SCRIPT
-  NNTOOL_SCRIPT=model/nntool_script
-endif
+
 IMAGES = images
 RM=rm -f
 
 NNTOOL=nntool
 
-# hram - HyperBus RAM
-# qspiram - Quad SPI RAM
-MODEL_L3_EXEC=hram
-# hflash - HyperBus Flash
-# qpsiflash - Quad SPI Flash
-MODEL_L3_CONST=hflash
 MODEL_HEADER= $(MODEL_PREFIX)Info.h
 
 

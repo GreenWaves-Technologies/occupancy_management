@@ -25,7 +25,13 @@
 #include "bsp/gapoc_b_v2.h"
 #include "bsp/camera.h"
 #include "bsp/fs.h"
+
+#if SPI_FLASH
+#include "bsp/flash/spiflash.h"
+#else
 #include "bsp/flash/hyperflash.h"
+#endif
+
 #include "bsp/camera/thermeye.h"
 
 #include "bsp/fs.h"
@@ -43,9 +49,15 @@
 
 #define GPIO_USER_LED 0
 
+
+#if SPI_FLASH
+struct pi_device QspiRam;
+AT_QSPIFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
+#else
 struct pi_device HyperRam;
-static struct pi_hyperram_conf conf;
-AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash = 0;
+AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
+#endif
+
 
 #define FIX2FP(Val, Precision)    ((float) (Val) / (float) (1<<(Precision)))
 
@@ -71,11 +83,15 @@ PI_L2 bboxs_t bbxs;
 
 void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
 {
-    struct pi_fs_conf conf;
-    struct pi_hyperflash_conf flash_conf;
+    struct pi_fs_conf fsconf;
+    struct pi_spiflash_conf flash_conf;
 
     /* Init & open flash. */
+    #if SPI_FLASH
+    pi_spiflash_conf_init(&flash_conf);
+    #else
     pi_hyperflash_conf_init(&flash_conf);
+    #endif
     pi_open_from_conf(flash, &flash_conf);
     if (pi_flash_open(flash))
     {
@@ -83,13 +99,13 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
         pmsis_exit(-1);
     }
     
-    pi_fs_conf_init(&conf);
+    pi_fs_conf_init(&fsconf);
     
-    //conf.type = PI_FS_HOST;
-    conf.flash = flash;
-    conf.type = PI_FS_READ_ONLY;
+    //fsconf.type = PI_FS_HOST;
+    fsconf.flash = flash;
+    fsconf.type = PI_FS_READ_ONLY;
 
-    pi_open_from_conf(fs, &conf);
+    pi_open_from_conf(fs, &fsconf);
 
     if (pi_fs_mount(fs)){
         printf("Error FS mounting !\n");
@@ -293,26 +309,34 @@ void non_max_suppress(bboxs_t * boundbxs){
 int initL3Buffers(){
 
     /* Init & open ram. */
+    #if SPI_FLASH
+    struct pi_device *ram= &QspiRam;
+    static struct pi_spiram_conf conf;
+    pi_spiram_conf_init(&conf);
+    #else
+    struct pi_device *ram=&HyperRam;
+    static struct pi_hyperram_conf conf;
     pi_hyperram_conf_init(&conf);
-    pi_open_from_conf(&HyperRam, &conf);
-    if (pi_ram_open(&HyperRam))
+    #endif
+    pi_open_from_conf(ram, &conf);
+    if (pi_ram_open(ram))
     {
         printf("Error ram open !\n");
         return -1;
     }
 
-    pi_ram_alloc(&HyperRam, &output1, 40 * 40 * 16 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output2, 20 * 20 * 16 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output3, 10 * 10 * 16 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output4,  5 *  5 * 16 * sizeof(short int));
+    pi_ram_alloc(ram, &output1, 40 * 40 * 16 * sizeof(short int));
+    pi_ram_alloc(ram, &output2, 20 * 20 * 16 * sizeof(short int));
+    pi_ram_alloc(ram, &output3, 10 * 10 * 16 * sizeof(short int));
+    pi_ram_alloc(ram, &output4,  5 *  5 * 16 * sizeof(short int));
     
-    pi_ram_alloc(&HyperRam, &output5, 40 * 40 * 32 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output6, 20 * 20 * 32 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output7, 10 * 10 * 32 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &output8,  5 *  5 * 32 * sizeof(short int));
+    pi_ram_alloc(ram, &output5, 40 * 40 * 32 * sizeof(short int));
+    pi_ram_alloc(ram, &output6, 20 * 20 * 32 * sizeof(short int));
+    pi_ram_alloc(ram, &output7, 10 * 10 * 32 * sizeof(short int));
+    pi_ram_alloc(ram, &output8,  5 *  5 * 32 * sizeof(short int));
 
-    pi_ram_alloc(&HyperRam, &tmp_buffer_classes, 40 * 40 * 16 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &tmp_buffer_boxes  , 40 * 40 * 32 * sizeof(short int));
+    pi_ram_alloc(ram, &tmp_buffer_classes, 40 * 40 * 16 * sizeof(short int));
+    pi_ram_alloc(ram, &tmp_buffer_boxes  , 40 * 40 * 32 * sizeof(short int));
 
     if(output1==NULL || output2==NULL || output3==NULL || output4==NULL || output5==NULL || output6==NULL || output7==NULL || output8==NULL )
     {
@@ -325,7 +349,7 @@ int initL3Buffers(){
         return -1;
     }
 
-    //leave ram open
+    //leave ram open for AT
 
     return 0;
 }
@@ -359,7 +383,7 @@ static void RunNN()
     //Set Boundinx Boxes to 0
     bbxs.num_bb = 0;
     //TODO Add a check to be sure that ssd L1 is smaller than L1
-    SSDKernels_L1_Memory = L1_Memory;
+    SSDKernels_L1_Memory = lynred_L1_Memory;
     
     //Processing Classes and Boxes
     SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,OUTPUT1_Q,2);
@@ -548,8 +572,8 @@ void peopleDetection(void)
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,100000000);
-    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
+    //pi_freq_set(PI_FREQ_DOMAIN_FC,100000000);
+//    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
 
     unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(IMAGE_IN_T));
     if (ImageInChar == 0)
@@ -576,12 +600,12 @@ void peopleDetection(void)
 
     #elif defined INPUT_RAW_FILE
     //Load 16 bits raw image
+
     if(read_raw_image(RawImageName, ImageIn,W,H)){
         PRINTF("Failed to load raw image\n");
         pmsis_exit(-1);
     }
     #endif
-    
 
     /* Configure And open cluster. */
     struct pi_device cluster_dev;
@@ -623,7 +647,7 @@ void peopleDetection(void)
         pmsis_exit(-3);
     }
     
-    pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
     pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     //Pad Workaround:

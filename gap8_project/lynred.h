@@ -4,8 +4,11 @@
 
 #include "lynredInfo.h"
 
+#if SPI_FLASH
+extern AT_QSPIFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
+#else
 extern AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
-
+#endif
 #define INPUT1_Q S0_Op_input_1_Q
 
 #define OUTPUT1_Q S4_Op_output_1_Q

@@ -46,7 +46,7 @@ $(MODEL_BUILD)/$(MODEL_SRC): $(MODEL_STATE) $(MODEL_TFLITE)
 
 # Build the code generator from the model code
 $(MODEL_GEN_EXE): $(MODEL_BUILD)/$(MODEL_SRC)
-	gcc -g -o $(MODEL_GEN_EXE) -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH)  $(MODEL_BUILD)/$(MODEL_SRC) $(MODEL_GEN_POW2) $(TILER_LIB) $(MODEL_GEN_INCLUDE_POW2)
+	gcc -g -o $(MODEL_GEN_EXE) -I$(TILER_PATH)/Autotiler -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH)  $(MODEL_BUILD)/$(MODEL_SRC) $(MODEL_GEN_POW2) $(TILER_LIB) $(MODEL_GEN_INCLUDE_POW2)
 
 # Run the code generator to generate GAP graph and kernel code
 $(MODEL_GEN_C): $(MODEL_GEN_EXE)

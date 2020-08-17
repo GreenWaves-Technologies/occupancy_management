@@ -147,16 +147,19 @@ int main(int argc, char **argv)
 
     SetGeneratedFilesNames("SSDKernels.c", "SSDKernels.h");
     
-    SetL1MemorySize(L1Memory);
-    SetMemorySizes(L1Memory,L2Memory,L3Memory);
+    //SetL1MemorySize(L1Memory);
+    //SetMemorySizes(L1Memory,L2Memory,L3Memory);
 
     SetMemoryDeviceInfos(3,
-        AT_MEM_L1, L1Memory, "SSDKernels_L2_Memory", 0, 0,
+        AT_MEM_L1, L1Memory, "SSDKernels_L1_Memory", 0, 0,
         AT_MEM_L2, L2Memory, "SSDKernels_L2_Memory", 0, 0,
+        #if SPI_FLASH
+        AT_MEM_L3_QSPIRAM, L3Memory, "SSDKernels_L3_Memory", 0, 1
+        #else
         AT_MEM_L3_HRAM, L3Memory, "SSDKernels_L3_Memory", 0, 1
+        #endif
     );
     LoadLibKernels();
-
 
     GenerateSSD3Dto2D("SDD3Dto2DSoftmax_40_40_16", 40, 40, 16, n_classes,1);
     GenerateSSD3Dto2D("SDD3Dto2D_40_40_32",        40, 40, 32, n_classes,0);
