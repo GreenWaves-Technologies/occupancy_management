@@ -654,22 +654,12 @@ void peopleDetection(void)
  
     #if !defined(INPUT_RAW_FILE) && !defined(INPUT_FILE)
     PRINTF("Opening camera\n");
-    uint32_t* reg1= 0x1A104140;
-    uint32_t* reg2= 0x1A104144;
-    uint32_t* reg3= 0x1A104148;
-    //printf("Pad settings: %x %x %x\n",*reg1, *reg2, *reg3);
-    //bug workaround
-    *reg2 = 0xf411000;
     if (open_camera_thermeye(&cam))
     {
         PRINTF("Thermal Eye camera open failed !\n");
         pmsis_exit(-1);
     }
-    printf("Pad settings: %x %x %x\n",*reg1, *reg2, *reg3);
-    //bug workaround
-    *reg3 = 0x3fffff;
-    //pi_time_wait_us(2 * 1000 * 1000);
-
+    
     #ifdef OFFSET_IMAGE_EVERY_BOOT
     //This taking the offset each time we turn on the board
     PRINTF("Shooting offset, cover sensor with a black body!\n");
