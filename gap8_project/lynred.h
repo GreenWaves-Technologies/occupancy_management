@@ -4,7 +4,7 @@
 
 #include "lynredInfo.h"
 
-#if SPI_FLASH
+#if defined(QSPI)
 extern AT_QSPIFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 #else
 extern AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;

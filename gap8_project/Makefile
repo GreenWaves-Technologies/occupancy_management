@@ -29,7 +29,11 @@ GAP_FLAGS += -DINPUT_FILE
 ##  To enable Ble communication (with the demo android app):
 #GAP_FLAGS += -DUSE_BLE
 ##  To take an image as reference offset at every boot you can use the following flags:
-#GAP_FLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1 
+#GAP_FLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1
+##  To enable QSPI_FLASH/RAM instead of Hyper Flash/Ram:
+##  QSPI or HYPER:
+EXT_MEM_TYPE ?= HYPER
+
 
 #######################################
 
@@ -60,10 +64,14 @@ ifeq ($(NN_BITS),8)
 else
 	ifeq ($(NN_BITS),16)
 		GAP_FLAGS += -DNN_16BIT
-		NNTOOL_SCRIPT=model/nntool_script16
+		ifeq ($(EXT_MEM_TYPE),HYPER)
+			NNTOOL_SCRIPT=model/nntool_script16
+		else
+			NNTOOL_SCRIPT=model/nntool_script16_spi
+		endif
 		MODEL_SUFFIX = _16BIT
 	else
-		$(error Don't know how to build with this bit width)
+		$(error Don\'t know how to build with this bit width)
 	endif
 endif
 
@@ -75,27 +83,33 @@ include model_decl.mk
 MODEL_L1_MEMORY=40000
 MODEL_L2_MEMORY=100000
 MODEL_L3_MEMORY=4000000
+
+ifeq ($(EXT_MEM_TYPE),HYPER)
 # hram - HyperBus RAM
-# qspiram - Quad SPI RAM
 MODEL_L3_EXEC=hram
 # hflash - HyperBus Flash
-# qpsiflash - Quad SPI Flash
 MODEL_L3_CONST=hflash
+else
+# qspiram - Quad SPI RAM
+MODEL_L3_EXEC=qspiram
+# qpsiflash - Quad SPI Flash
+MODEL_L3_CONST=qspiflash
+endif
+
+GAP_FLAGS += -D$(EXT_MEM_TYPE)
 
 pulpChip = GAP
 APP = PeopleDetection
 
 APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(MODEL_LIB_POW2) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
-GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns 
+GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns
 GAP_FLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
 APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
-APP_INC += 
+APP_INC +=
 
 BOARD_NAME = gapoc_b
 PMSIS_OS  ?= pulpos
-
-FLASH_TYPE ?= HYPER_FLASH
 
 #RUNNER_CONFIG = $(CURDIR)/config-$(TARGET_NAME).ini
 
@@ -125,9 +139,10 @@ endif
 SSD_MODEL_GEN = SSDKernels
 SSD_MODEL_GEN_C = $(addsuffix .c, $(SSD_MODEL_GEN))
 SSD_MODEL_GEN_CLEAN = $(SSD_MODEL_GEN_C) $(addsuffix .h, $(SSD_MODEL_GEN))
+SSD_FLAGS = -D$(EXT_MEM_TYPE)
 
 GenSSDTile: SSDModel.c
-	gcc -g -o GenSSDTile -I"$(TILER_INC)" SSDModel.c $(TILER_LIB)
+	gcc -g $(SSD_FLAGS) -o GenSSDTile -I"$(TILER_INC)" SSDModel.c $(TILER_LIB)
 
 $(SSD_MODEL_GEN_C): GenSSDTile
 	./GenSSDTile
@@ -142,8 +157,9 @@ clean_all: clean_model clean
 	rm -rf GenSSDTile
 	rm -rf BUILD*
 	cd SSDParamsGenerator && $(MAKE) clean
+	rm -rf SSDKernels.*
 
-.PHONY: clean_all 
+.PHONY: clean_all
 
 include model_rules.mk
 include $(RULES_DIR)/pmsis_rules.mk

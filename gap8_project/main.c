@@ -26,9 +26,11 @@
 #include "bsp/camera.h"
 #include "bsp/fs.h"
 
-#if SPI_FLASH
+#if defined(QSPI)
+#define FLASH_NAME "QSPI"
 #include "bsp/flash/spiflash.h"
 #else
+#define FLASH_NAME "HYPER"
 #include "bsp/flash/hyperflash.h"
 #endif
 
@@ -50,7 +52,7 @@
 #define GPIO_USER_LED 0
 
 
-#if SPI_FLASH
+#if defined(QSPI)
 struct pi_device QspiRam;
 AT_QSPIFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 #else
@@ -87,7 +89,7 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
     struct pi_spiflash_conf flash_conf;
 
     /* Init & open flash. */
-    #if SPI_FLASH
+    #if defined(QSPI)
     pi_spiflash_conf_init(&flash_conf);
     #else
     pi_hyperflash_conf_init(&flash_conf);
@@ -98,9 +100,9 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
         printf("Error flash open !\n");
         pmsis_exit(-1);
     }
-    
+
     pi_fs_conf_init(&fsconf);
-    
+
     //fsconf.type = PI_FS_HOST;
     fsconf.flash = flash;
     fsconf.type = PI_FS_READ_ONLY;
@@ -140,7 +142,7 @@ static int initNN(){
     int32_t size = 0;
     uint32_t size_total = 0;
 
-    img_offset  = (unsigned short int *) pmsis_l2_malloc(80 * 80 * sizeof(unsigned short int)); 
+    img_offset  = (unsigned short int *) pmsis_l2_malloc(80 * 80 * sizeof(unsigned short int));
     char * buff =  img_offset;
 
     if (img_offset==NULL )
@@ -151,7 +153,7 @@ static int initNN(){
 
     struct pi_device flash;
     struct pi_device fs;
-    
+
     open_flash_filesystem(&flash, &fs);
 
     file = pi_fs_open(&fs, name, 0);
@@ -163,11 +165,11 @@ static int initNN(){
 
     do
     {
-        //Read from filesystem(on flash) to a buffer in L2 memory. 
+        //Read from filesystem(on flash) to a buffer in L2 memory.
         size = pi_fs_read(file, buff+size_total, BUFFER_SIZE);
         size_total += size;
     } while (size_total < file->size);
-    
+
     pi_fs_close(file);
 
     close_flash_filesystem(&flash,&fs);
@@ -271,7 +273,7 @@ int rect_intersect_area( short a_x, short a_y, short a_w, short a_h,
     if(size_x <=0 || size_x <=0)
         return 0;
     else
-        return size_x*size_y; 
+        return size_x*size_y;
 
     #undef MAX
     #undef MIN
@@ -287,7 +289,7 @@ void non_max_suppress(bboxs_t * boundbxs){
         //check if rect has been removed (-1)
         if(boundbxs->bbs[idx].alive==0)
             continue;
- 
+
         for(idx_int=0;idx_int<boundbxs->num_bb;idx_int++){
 
             if(boundbxs->bbs[idx_int].alive==0 || idx_int==idx)
@@ -309,15 +311,15 @@ void non_max_suppress(bboxs_t * boundbxs){
 int initL3Buffers(){
 
     /* Init & open ram. */
-    #if SPI_FLASH
+#if defined(QSPI)
     struct pi_device *ram= &QspiRam;
     static struct pi_spiram_conf conf;
     pi_spiram_conf_init(&conf);
-    #else
+#else
     struct pi_device *ram=&HyperRam;
     static struct pi_hyperram_conf conf;
     pi_hyperram_conf_init(&conf);
-    #endif
+#endif
     pi_open_from_conf(ram, &conf);
     if (pi_ram_open(ram))
     {
@@ -329,7 +331,7 @@ int initL3Buffers(){
     pi_ram_alloc(ram, &output2, 20 * 20 * 16 * sizeof(short int));
     pi_ram_alloc(ram, &output3, 10 * 10 * 16 * sizeof(short int));
     pi_ram_alloc(ram, &output4,  5 *  5 * 16 * sizeof(short int));
-    
+
     pi_ram_alloc(ram, &output5, 40 * 40 * 32 * sizeof(short int));
     pi_ram_alloc(ram, &output6, 20 * 20 * 32 * sizeof(short int));
     pi_ram_alloc(ram, &output7, 10 * 10 * 32 * sizeof(short int));
@@ -373,9 +375,9 @@ static void RunNN()
               output6,
               output7,
               output8);
-    
+
     ti_nn = gap_cl_readhwtimer()-ti;
-    
+
     /////////////////////
     //SSD Code
     /////////////////////
@@ -384,7 +386,7 @@ static void RunNN()
     bbxs.num_bb = 0;
     //TODO Add a check to be sure that ssd L1 is smaller than L1
     SSDKernels_L1_Memory = lynred_L1_Memory;
-    
+
     //Processing Classes and Boxes
     SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,OUTPUT1_Q,2);
     SDD3Dto2D_40_40_32(output5,tmp_buffer_boxes,0,0);
@@ -421,9 +423,9 @@ static void RunNN()
     non_max_suppress(&bbxs);
 
     ti_ssd = gap_cl_readhwtimer()-ti_nn-ti;
-    
+
     #if !defined SILENT
-        
+
     printBboxes(&bbxs);
     printBboxes_forPython(&bbxs);
     #endif
@@ -454,7 +456,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
         if(boundbxs->bbs[counter].alive){
-            
+
             boundbxs->bbs[counter].x = boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
             boundbxs->bbs[counter].y = boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
             stringLenght+=sprintf(tmpString,"%dx%d;",boundbxs->bbs[counter].x, boundbxs->bbs[counter].y);
@@ -462,7 +464,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
         }
     }
 
-    //stringLenght+=sprintf(tmpString,"Gap8 Power Consuption %f mW/FPS",((float)(1/(50000000.f/12000000)) * 16.800));   
+    //stringLenght+=sprintf(tmpString,"Gap8 Power Consuption %f mW/FPS",((float)(1/(50000000.f/12000000)) * 16.800));
     stringLenght+=sprintf(tmpString,"A Project from GreenWaves and Lynred");
     strcat(bleDetString,tmpString);
 
@@ -492,7 +494,7 @@ int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
     pi_fs_conf_init(&conf);
     conf.type = PI_FS_HOST;
     pi_open_from_conf(&fs, &conf);
-    
+
     if (pi_fs_mount(&fs))
         return -2;
 
@@ -503,7 +505,7 @@ int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
     {
         char *TargetImg = buffer;
         unsigned int RemainSize = w*h*sizeof(uint16_t);
-        
+
         while (RemainSize > 0)
         {
             unsigned int Chunk = Min(4096, RemainSize);
@@ -516,7 +518,7 @@ int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
 
     pi_fs_close(file);
     pi_fs_unmount(&fs);
-    
+
     printf("Image %s, [W: %d, H: %d], Gray, Size: %d bytes, Loaded sucessfully\n", filename, w, h, ReadSize);
 
     return 0;
@@ -565,7 +567,7 @@ void peopleDetection(void)
     //pi_pad_set_function(PI_PAD_32_A13_TIMER0_CH1, PI_PAD_32_A13_GPIO_A18_FUNC1);
     //pi_gpio_pin_configure(NULL, USER_GPIO, PI_GPIO_OUTPUT);
     //pi_gpio_pin_write(NULL, USER_GPIO, 1);
-    
+
     unsigned int Wi, Hi;
     //Input image size
     unsigned int W = 80, H = 80;
@@ -582,7 +584,7 @@ void peopleDetection(void)
         return 1;
     }
     ImageIn = (IMAGE_IN_T *)ImageInChar;
-    
+
     #ifdef INPUT_FILE
     //Reading Image from Bridge
     PRINTF("Loading Image from File\n");
@@ -591,8 +593,8 @@ void peopleDetection(void)
         PRINTF("Failed to load image %s or dimension mismatch Expects [%dx%d], Got [%dx%d]\n", ImageName, W, H, Wi, Hi);
         pmsis_exit(-1);
     }
-    
-    
+
+
     for (int i = W * H - 1; i >= 0; i--)
     {
         ImageIn[i] = ImageInChar[i] << INPUT1_Q - 8; //Input is naturally a Q8
@@ -617,14 +619,14 @@ void peopleDetection(void)
         PRINTF("Cluster open failed !\n");
         pmsis_exit(-7);
     }
-    
+
     PRINTF("Init NN\n");
     if(initNN())
     {
         PRINTF("NN Init exited with an error\n");
         return 1;
     }
-    
+
     PRINTF("Allocating Buffers in L3\n");
     if (initL3Buffers())
     {
@@ -632,7 +634,7 @@ void peopleDetection(void)
         return 1;
     }
 
-    PRINTF("Constructor\n"); 
+    PRINTF("Constructor\n");
     if (lynredCNN_Construct())
     {
         PRINTF("Graph constructor exited with an error\n");
@@ -646,12 +648,12 @@ void peopleDetection(void)
         printf("SSD L2 allocation error\n");
         pmsis_exit(-3);
     }
-    
+
     pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
     pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     //Pad Workaround:
- 
+
     #if !defined(INPUT_RAW_FILE) && !defined(INPUT_FILE)
     PRINTF("Opening camera\n");
     if (open_camera_thermeye(&cam))
@@ -659,7 +661,7 @@ void peopleDetection(void)
         PRINTF("Thermal Eye camera open failed !\n");
         pmsis_exit(-1);
     }
-    
+
     #ifdef OFFSET_IMAGE_EVERY_BOOT
     //This taking the offset each time we turn on the board
     PRINTF("Shooting offset, cover sensor with a black body!\n");
@@ -677,7 +679,7 @@ void peopleDetection(void)
     PRINTF("Init BLE\n");
     int status;
     status = initHandler();
-    
+
     if(status)
     {
         PRINTF("User manager init failed!\n");
@@ -711,13 +713,13 @@ void peopleDetection(void)
         pi_camera_capture(&cam, ImageIn, W*H*sizeof(uint16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
         #endif
-        
+
         #ifndef INPUT_FILE
 
         //PRINTF("Calling shutterless filtering\n");
         //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         //pi_perf_reset(); pi_perf_start();
-        
+
         if(preFiltering_fixed(ImageIn, img_offset,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
@@ -725,13 +727,13 @@ void peopleDetection(void)
         //pi_perf_stop();
         //int Ti = pi_perf_read(PI_PERF_ACTIVE_CYCLES);
         //PRINTF("Cycles shutterless: %10d\n",Ti);
-        
+
         #endif
         PRINTF("Call cluster\n");
         //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         pi_cluster_send_task_to_cl(&cluster_dev, task);
 
-        
+
         #ifdef SAVE_TO_PC
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
@@ -741,7 +743,7 @@ void peopleDetection(void)
         WriteImageToFile(string_buffer, W, H, img_out_ptr);
         save_index++;
         #endif
-        
+
         #if defined USE_BLE
         sendResultsToBle(&bbxs);
         #ifndef SAVE_TO_PC
@@ -755,10 +757,10 @@ void peopleDetection(void)
     }
 
     lynredCNN_Destruct();
-    
+
     // Close the cluster
     pi_cluster_close(&cluster_dev);
-    
+
     PRINTF("Ended\n");
     pmsis_exit(0);
 }
@@ -766,6 +768,7 @@ void peopleDetection(void)
 
 int main(void)
 {
-    PRINTF("\n\n\t *** Therm Eye ***\n\n");
+    PRINTF("\n\n\t *** Therm Eye ***\n");
+    PRINTF("\n\t   %s Version\n\n", FLASH_NAME);
     return pmsis_kickoff((void *) peopleDetection);
 }
