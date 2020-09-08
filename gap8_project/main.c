@@ -359,8 +359,8 @@ static void RunNN()
     //Set Boundinx Boxes to 0
     bbxs.num_bb = 0;
     //TODO Add a check to be sure that ssd L1 is smaller than L1
-    SSDKernels_L1_Memory = L1_Memory;
-    
+    SSDKernels_L1_Memory = lynred_L1_Memory;
+
     //Processing Classes and Boxes
     SDD3Dto2DSoftmax_40_40_16(output1,tmp_buffer_classes,OUTPUT1_Q,2);
     SDD3Dto2D_40_40_32(output5,tmp_buffer_boxes,0,0);

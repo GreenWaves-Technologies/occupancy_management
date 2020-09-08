@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     SetMemorySizes(L1Memory,L2Memory,L3Memory);
 
     SetMemoryDeviceInfos(3,
-        AT_MEM_L1, L1Memory, "SSDKernels_L2_Memory", 0, 0,
+        AT_MEM_L1, L1Memory, "SSDKernels_L1_Memory", 0, 0,
         AT_MEM_L2, L2Memory, "SSDKernels_L2_Memory", 0, 0,
         AT_MEM_L3_HRAM, L3Memory, "SSDKernels_L3_Memory", 0, 1
     );
