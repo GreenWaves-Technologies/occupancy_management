@@ -1,5 +1,5 @@
 tqdm==4.42.1
-tensorflow==1.14.0
+tensorflow==1.15.4
 h5py==2.10.0
 prettytable==0.7.2
 opencv_python==4.1.0.25
