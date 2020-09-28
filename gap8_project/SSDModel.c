@@ -60,15 +60,15 @@ void GenerateSSD3Dto2D(char *Name, int Wi, int Hi, int Fi, int classes, int DoSo
     UserKernel(Name,
         KernelIterSpace(1, IterTiledSpace(KER_ITER_TILE0)),
         TILE_HOR,
-        CArgs(4, 
-            TCArg("short *", "In"), 
+        CArgs(4,
+            TCArg("short *", "In"),
             TCArg("short *", "Out"),
             TCArg("unsigned char", "Q"),
             TCArg("unsigned short", "n_classes")
         ),
-        
+
         Calls(1, Call("KerSDD3Dto2DShort", LOC_LOOP,
-            
+
             Bindings(8, K_Arg("In", KER_ARG_TILE),
                         K_Arg("In", KER_ARG_TILE_W),
                         K_Arg("In", KER_ARG_TILE_H),
@@ -86,14 +86,14 @@ void GenerateSSD3Dto2D(char *Name, int Wi, int Hi, int Fi, int classes, int DoSo
 }
 
 void GeneratePredecoder(char *Name, int FeaturesMap_W, int FeaturesMap_H, int n_ancors, int offsets,int classes)
-{   
+{
 
     //Classes can be used to contrain the input
     UserKernel(Name,
         KernelIterSpace(1, IterTiledSpace(KER_ITER_TILE0)),
         TILE_HOR,
-        CArgs(5, 
-            TCArg("short *", "Classes"), 
+        CArgs(5,
+            TCArg("short *", "Classes"),
             TCArg("short *", "Boxes"),
             TCArg("void  *", "Ancor_layer"),
             TCArg("void  *", "BoundingBoxes"),
@@ -146,17 +146,20 @@ int main(int argc, char **argv)
     SetUsedFilesNames(0, 1, "SSDBasicKernels.h");
 
     SetGeneratedFilesNames("SSDKernels.c", "SSDKernels.h");
-    
-    SetL1MemorySize(L1Memory);
-    SetMemorySizes(L1Memory,L2Memory,L3Memory);
+
+    //SetL1MemorySize(L1Memory);
+    //SetMemorySizes(L1Memory,L2Memory,L3Memory);
 
     SetMemoryDeviceInfos(3,
-        AT_MEM_L1, L1Memory, "SSDKernels_L2_Memory", 0, 0,
+        AT_MEM_L1, L1Memory, "SSDKernels_L1_Memory", 0, 0,
         AT_MEM_L2, L2Memory, "SSDKernels_L2_Memory", 0, 0,
+        #ifdef QSPI
+        AT_MEM_L3_QSPIRAM, L3Memory, "SSDKernels_L3_Memory", 0, 1
+        #else
         AT_MEM_L3_HRAM, L3Memory, "SSDKernels_L3_Memory", 0, 1
+        #endif
     );
     LoadLibKernels();
-
 
     GenerateSSD3Dto2D("SDD3Dto2DSoftmax_40_40_16", 40, 40, 16, n_classes,1);
     GenerateSSD3Dto2D("SDD3Dto2D_40_40_32",        40, 40, 32, n_classes,0);
@@ -169,7 +172,7 @@ int main(int argc, char **argv)
     GenerateSSD3Dto2D("SDD3Dto2DSoftmax_10_10_16", 10, 10, 16, n_classes, 1);
     GenerateSSD3Dto2D("SDD3Dto2D_10_10_32",        10, 10, 32, n_classes,0);
     GeneratePredecoder("Predecoder10_10",          10, 10, n_anchors, n_offsets, n_classes);
- 
+
     GenerateSSD3Dto2D("SDD3Dto2DSoftmax_5_5_16",    5,  5, 16, n_classes,1);
     GenerateSSD3Dto2D("SDD3Dto2D_5_5_32",           5,  5, 32, n_classes,0);
     GeneratePredecoder("Predecoder5_5",             5,  5, n_anchors, n_offsets, n_classes);
