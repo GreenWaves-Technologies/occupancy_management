@@ -27,7 +27,7 @@ static inline unsigned int __attribute__((always_inline)) ChunkSize(unsigned int
     unsigned int Log2Core;
     unsigned int Chunk;
 
-    NCore = rt_nb_pe();
+    NCore = gap_ncore();
     Log2Core = gap_fl1(NCore);
     Chunk = (X>>Log2Core) + ((X&(NCore-1))!=0);
     return Chunk;

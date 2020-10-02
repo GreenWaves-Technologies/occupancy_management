@@ -19,20 +19,23 @@
 
 ##  if you want to test the application with an input file from host PC use this flag:
 ##  Note that in this case the shutterless filtering is desactivated:
-GAP_FLAGS += -DINPUT_FILE
+APP_CFLAGS += -DINPUT_FILE
 ##  To save output results to host PC
 ##  This is usefull for application debug
 #SAVE_TO_PC=1
 ##  In full demo mode ble should be activated and silent as well, since printfs block the execution if set over jtag
 ##  To disable all printf (needed to flash application to boot from flash):
-#GAP_FLAGS += -DSILENT=1
+#APP_CFLAGS += -DSILENT=1
 ##  To enable Ble communication (with the demo android app):
-#GAP_FLAGS += -DUSE_BLE
+#APP_CFLAGS += -DUSE_BLE
 ##  To take an image as reference offset at every boot you can use the following flags:
-#GAP_FLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1
+#APP_CFLAGS += -DOFFSET_IMAGE_EVERY_BOOT=1
 ##  To enable QSPI_FLASH/RAM instead of Hyper Flash/Ram:
 ##  QSPI or HYPER:
 EXT_MEM_TYPE ?= HYPER
+##  To enable Sleep feature (ONLY in PulpOS):
+#APP_CFLAGS += -DSLEEP
+
 
 
 #######################################
@@ -58,12 +61,12 @@ $(info Building GAP8 mode with $(NN_BITS) bit quantization)
 # the quantization. This is because in 8 bit mode we used signed
 # 8 bit so the input to the model needs to be shifted 1 bit
 ifeq ($(NN_BITS),8)
-	GAP_FLAGS += -DNN_8BIT
+	APP_CFLAGS += -DNN_8BIT
 	NNTOOL_SCRIPT=model/nntool_script8
 	MODEL_SUFFIX = _8BIT
 else
 	ifeq ($(NN_BITS),16)
-		GAP_FLAGS += -DNN_16BIT
+		APP_CFLAGS += -DNN_16BIT
 		ifeq ($(EXT_MEM_TYPE),HYPER)
 			NNTOOL_SCRIPT=model/nntool_script16
 		else
@@ -96,15 +99,15 @@ MODEL_L3_EXEC=qspiram
 MODEL_L3_CONST=qspiflash
 endif
 
-GAP_FLAGS += -D$(EXT_MEM_TYPE)
+APP_CFLAGS += -D$(EXT_MEM_TYPE)
 
 pulpChip = GAP
 APP = PeopleDetection
 
 APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(MODEL_LIB_POW2) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
-GAP_FLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns
-GAP_FLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
+APP_CFLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns
+APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
 APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
 APP_INC +=
 
@@ -125,7 +128,7 @@ export GAP_USE_OPENOCD=1
 io=host
 
 ifeq ($(SAVE_TO_PC),1)
-	GAP_FLAGS+=-DSAVE_TO_PC=1
+	APP_CFLAGS+=-DSAVE_TO_PC=1
 prepare_debug:
 	mkdir -p dump_out_imgs
 	rm -rf dump_out_imgs/*

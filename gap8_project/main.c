@@ -525,6 +525,11 @@ int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
 
 }
 
+/* This SLEEP only works in pulpos for now
+ * TODO: need to be support in freeRTOS when new api available
+ */
+
+#ifdef SLEEP
 #define RTC_TIME 5
 void go_to_sleep(){
 
@@ -546,6 +551,7 @@ void go_to_sleep(){
         printf("Error....\n");
 
 }
+#endif
 
 #define USER_GPIO 18
 
