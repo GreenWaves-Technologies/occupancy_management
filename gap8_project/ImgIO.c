@@ -124,7 +124,7 @@ static unsigned int GetInputImageInfos(char *Name, unsigned int *W, unsigned int
 
 	if (Debug) printf("File: %s open: %s\n", Name, File?"Ok":"Failed");
 	if (File) {
-		unsigned char *Header = (unsigned char *) rt_alloc(RT_ALLOC_L2_CL_DATA, 256);
+		unsigned char *Header = (unsigned char *) pmsis_l2_malloc(256);
 		Err |= (Header == 0);
 		if (pi_fs_read(File,Header, 256) == 256) {
 			unsigned int i;
@@ -135,7 +135,7 @@ static unsigned int GetInputImageInfos(char *Name, unsigned int *W, unsigned int
                 printf("\n");
 			}
 		} else Err = 1;
-		rt_free(RT_ALLOC_L2_CL_DATA, Header,256);
+		pmsis_l2_malloc_free(Header,256);
 		pi_fs_close(File);
 		pi_fs_unmount(&fs);
 	}

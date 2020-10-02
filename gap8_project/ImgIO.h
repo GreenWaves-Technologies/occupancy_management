@@ -19,6 +19,10 @@
 #define __IMG_IO_H__
 
 
+#ifndef PPM_HEADER
+#define PPM_HEADER 40
+#endif
+
 unsigned char *ReadImageFromFile(char *ImageName, unsigned int *W, unsigned int *H, unsigned char *InBuffer, unsigned int BuffSize);
 int WriteImageToFile(char *ImageName, unsigned int W, unsigned int H, unsigned char *InBuffer);
 #endif //__IMG_IO_H__
