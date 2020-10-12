@@ -626,6 +626,9 @@ void peopleDetection(void)
         pmsis_exit(-7);
     }
 
+    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
+
     PRINTF("Init NN\n");
     if(initNN())
     {
@@ -654,9 +657,6 @@ void peopleDetection(void)
         printf("SSD L2 allocation error\n");
         pmsis_exit(-3);
     }
-
-    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
-    pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     //Pad Workaround:
 
