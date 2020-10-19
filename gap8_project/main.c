@@ -726,7 +726,7 @@ void peopleDetection(void)
         //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         //pi_perf_reset(); pi_perf_start();
 
-        if(preFiltering_fixed(ImageIn, img_offset,INPUT1_Q)){
+        if(shutterless_fixed(ImageIn, img_offset,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
