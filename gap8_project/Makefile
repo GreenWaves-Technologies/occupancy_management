@@ -20,9 +20,11 @@
 ##  if you want to test the application with an input file from host PC use this flag:
 ##  Note that in this case the shutterless filtering is desactivated:
 APP_CFLAGS += -DINPUT_FILE
+## To test prefiltering with a raw image
+#GAP_FLAGS += -DINPUT_RAW_FILE
 ##  To save output results to host PC
 ##  This is usefull for application debug
-#SAVE_TO_PC=1
+SAVE_TO_PC=1
 ##  In full demo mode ble should be activated and silent as well, since printfs block the execution if set over jtag
 ##  To disable all printf (needed to flash application to boot from flash):
 #APP_CFLAGS += -DSILENT=1
@@ -84,7 +86,7 @@ include model_decl.mk
 # REMEMBER THAT THE L1 MEMORY ALLOCATION MUST INCLUDE SPACE
 # FOR ALLOCATED STACKS!
 MODEL_L1_MEMORY=40000
-MODEL_L2_MEMORY=100000
+MODEL_L2_MEMORY=150000
 MODEL_L3_MEMORY=4000000
 
 ifeq ($(EXT_MEM_TYPE),HYPER)

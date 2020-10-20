@@ -8,7 +8,20 @@ set l3_ram_ext_managed True
 set l2_ram_ext_managed False
 set graph_reorder_constant_in true
 set graph_const_exec_from_flash true
-#This line is to dump all layer output
-#set graph_dump_tensor 7
+## These two lines are for dumping NN tensors
+# set graph_trace_exec true
+# set graph_dump_tensor 7
+#To dump one node only
+#set graph_dump_one_node S23_Conv2d_16x16x3x3_Relu 
+## Run the code with make clean all run platform=gvsoc | tee OUTPUT
+## This will take some time...
+## Then in nntool:
+## nntool BUILD_MODEL_16BIT/lynred.json
+## set input_divisor 256
+## set input_offset 0
+## dump samples/im4.pgm -q -S nntool_tensor
+## tensors --gap_load OUTPUT --name gap_tensor
+## tensors -s1 -t nntool_tensor gap_tensor
+## use -Q to see SQNR channel based results
 save_state
 
