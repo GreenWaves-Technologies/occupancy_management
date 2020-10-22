@@ -27,6 +27,11 @@
 #include "bsp/fs.h"
 
 
+#define NUM_OFFSET_IMG 5
+#define TIME_DELAY_OFFSET_IMG 2
+
+#define NUM_TEST_IMG 10
+
 #define IMG_WIDTH  ( 80 )
 #define IMG_HEIGHT ( 80 )
 #define IMG_SIZE   ( IMG_HEIGHT * IMG_WIDTH )
@@ -35,7 +40,7 @@
 static struct pi_device cam;
 
 static uint16_t calib_buffer[IMG_SIZE];
-static uint16_t img_buffer[IMG_SIZE];
+static uint32_t img_buffer[IMG_SIZE];
 static int16_t ref_buffer[IMG_SIZE];
 static int16_t dif_buff[IMG_SIZE];
 static uint8_t scaled_buff[IMG_SIZE];
@@ -76,9 +81,25 @@ void test_therm_eye()
     pi_time_wait_us(3 * 1000 * 1000);
     //printf("Buffer %p, size %d\n", calib_buffer, IMG_SIZE * sizeof(uint16_t));
 
-    pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
-    pi_camera_capture(&cam, calib_buffer, IMG_SIZE * sizeof(uint16_t));
-    pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
+
+    for(int i=0;i>IMG_SIZE;i++) img_buffer[i]=0;
+
+    for(int j=0;j<NUM_OFFSET_IMG;j++){
+
+        pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
+        pi_camera_capture(&cam, calib_buffer, IMG_SIZE * sizeof(uint16_t));
+        pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
+
+        for(int i=0;i>IMG_SIZE;i++){
+            img_buffer[i]+=calib_buffer[i];
+        }
+        printf("Collected image %d/%d to create offset image\n", j+1, NUM_OFFSET_IMG);
+        pi_time_wait_us(TIME_DELAY_OFFSET_IMG * 1000 * 1000);
+    }
+    
+    for(int i=0;i>IMG_SIZE;i++){
+        calib_buffer[i] = img_buffer[i]/NUM_OFFSET_IMG;
+    }
 
     pi_gpio_pin_write(NULL, GPIO_USER_LED, 1);
     printf("Offset Collected, now collecting raw dataset images!\n");
@@ -114,7 +135,8 @@ void test_therm_eye()
     }
     
     int save_index=0;
-    while(1){
+    int num_img=NUM_TEST_IMG;
+    while(num_img--){
 
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
         pi_camera_capture(&cam, calib_buffer, IMG_SIZE * sizeof(uint16_t));

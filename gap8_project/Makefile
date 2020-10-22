@@ -24,7 +24,7 @@ APP_CFLAGS += -DINPUT_FILE
 #GAP_FLAGS += -DINPUT_RAW_FILE
 ##  To save output results to host PC
 ##  This is usefull for application debug
-SAVE_TO_PC=1
+#SAVE_TO_PC=1
 ##  In full demo mode ble should be activated and silent as well, since printfs block the execution if set over jtag
 ##  To disable all printf (needed to flash application to boot from flash):
 #APP_CFLAGS += -DSILENT=1
@@ -37,7 +37,6 @@ SAVE_TO_PC=1
 EXT_MEM_TYPE ?= HYPER
 ##  To enable Sleep feature (ONLY in PulpOS):
 #APP_CFLAGS += -DSLEEP
-
 
 
 #######################################
@@ -82,11 +81,13 @@ endif
 
 include model_decl.mk
 
+MAIN_STACK_SIZE=4096
+
 # Here we set the memory allocation for the generated kernels
 # REMEMBER THAT THE L1 MEMORY ALLOCATION MUST INCLUDE SPACE
 # FOR ALLOCATED STACKS!
-MODEL_L1_MEMORY=40000
-MODEL_L2_MEMORY=150000
+MODEL_L1_MEMORY=42000
+MODEL_L2_MEMORY=200000
 MODEL_L3_MEMORY=4000000
 
 ifeq ($(EXT_MEM_TYPE),HYPER)
@@ -108,7 +109,7 @@ APP = PeopleDetection
 
 APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(MODEL_LIB_POW2) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
-APP_CFLAGS += -w -O2 -s -mno-memcpy -fno-tree-loop-distribute-patterns
+APP_CFLAGS += -w -O3 -s -mno-memcpy -fno-tree-loop-distribute-patterns
 APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
 APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
 APP_INC +=
@@ -120,7 +121,7 @@ PMSIS_OS  ?= pulpos
 
 ifeq ($(platform),gvsoc)
   $(info Platform is GVSOC)
-  READFS_FILES=$(realpath $(MODEL_TENSORS))
+  READFS_FILES=$(realpath $(MODEL_TENSORS)) $(realpath Calibration.bin)
   else
   READFS_FILES+=$(realpath $(MODEL_TENSORS)) $(realpath Calibration.bin)
   PLPBRIDGE_FLAGS+= -f
