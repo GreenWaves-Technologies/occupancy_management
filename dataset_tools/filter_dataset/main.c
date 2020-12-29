@@ -138,6 +138,9 @@ int main(int argc, char** argv)
 	char filename_qfd[300] ;
 	char new_name_qfd[300] ;
 
+	mkdir(output_folder_raw, 0755);
+	mkdir(output_folder_pgm, 0755);
+
 	while ((dp = readdir(dfd)) != NULL)
 	{
 		struct stat stbuf ;
