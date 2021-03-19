@@ -67,14 +67,13 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 short int *output8, *output1, *output2, *output3, *output4, *output5, *output6, *output7,*tmp_buffer_classes,*tmp_buffer_boxes;
 
 
-PI_L2 unsigned short *img_offset;
-
-typedef unsigned short int IMAGE_IN_T;
+PI_L2 int16_t*img_offset;
+typedef int16_t IMAGE_IN_T;
+PI_L2 IMAGE_IN_T *ImageIn;
 
 #define BUFFER_SIZE 1024
 static struct pi_device cam;
 
-PI_L2 unsigned short *ImageIn;
 
 extern PI_L2 Alps * anchor_layer_2;
 extern PI_L2 Alps * anchor_layer_3;
@@ -485,7 +484,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
     }
 }
 
-int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
+int read_raw_image(char* filename, int16_t* buffer,int w,int h){
     struct pi_fs_conf conf;
     static struct pi_device fs;
     static pi_fs_file_t *file;
@@ -504,7 +503,7 @@ int read_raw_image(char* filename, uint16_t* buffer,int w,int h){
 
     {
         char *TargetImg = buffer;
-        unsigned int RemainSize = w*h*sizeof(uint16_t);
+        unsigned int RemainSize = w*h*sizeof(int16_t);
 
         while (RemainSize > 0)
         {
@@ -553,12 +552,50 @@ void go_to_sleep(){
 }
 #endif
 
+
+int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w, int h, uint8_t q_output){
+    
+    int min,max;
+    int32_t out_min = 0;
+    int32_t out_max = 255;
+    int32_t out_space = (out_max-out_min);
+
+    //Calling shutterless 
+    int error = shutterless_fixed(img_input_fp16,img_offset_fp16,30,&min,&max);
+
+    float div = 1./(max-min);
+    int32_t div_fix = FP2FIX(div ,15);
+
+    //Normalizing to 8 bit and changing fixed point format for NN.
+    for(int i=0;i<w*h;i++){
+        img_input_fp16[i]= (int16_t)(((out_space)* ((((((int32_t)img_input_fp16[i])-min))*div_fix)))>>(15-q_output+8));
+    }
+
+    return error;
+}
+
+int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w, int h, uint8_t q_output, float gamma){
+    int min,max;
+    int32_t out_min = 0;
+    int32_t out_max = 255;
+    
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,30,&min,&max);    
+    printf("min %d, max %d\n",min,max);
+    for(int i=0;i<w*h;i++){
+        img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
+        img_input_fp16[i]= img_input_fp16[i] << (q_output-8);
+    }
+    return error;
+}
+
+
+
 #define USER_GPIO 18
 
 void peopleDetection(void)
 {
     char *ImageName = "../../../samples/im4.pgm";
-    char *RawImageName = "../../../raw_samples/dump_out_imgs/img_0016.bin";
+    char *RawImageName = "../../../raw_samples/dump_out_imgs/im_gap_20210125-14_15_04.bin";
 
     //To configure and use User LED
     //pi_pad_e pad = (GPIO_USER_LED >> PI_GPIO_NUM_SHIFT);
@@ -580,9 +617,7 @@ void peopleDetection(void)
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    //pi_freq_set(PI_FREQ_DOMAIN_FC,100000000);
-//    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
-
+    
     unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(IMAGE_IN_T));
     if (ImageInChar == 0)
     {
@@ -626,7 +661,7 @@ void peopleDetection(void)
         pmsis_exit(-7);
     }
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
     pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     PRINTF("Init NN\n");
@@ -716,7 +751,7 @@ void peopleDetection(void)
         PRINTF("Taking Picture!\n");
         //pi_gpio_pin_write(NULL, USER_GPIO, 0);
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
-        pi_camera_capture(&cam, ImageIn, W*H*sizeof(uint16_t));
+        pi_camera_capture(&cam, ImageIn, W*H*sizeof(int16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
         #endif
 
@@ -726,10 +761,11 @@ void peopleDetection(void)
         //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         //pi_perf_reset(); pi_perf_start();
 
-        if(shutterless_fixed(ImageIn, img_offset,INPUT1_Q)){
+        if(fixed_shutterless(ImageIn, img_offset,W,H,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
+        
         //pi_perf_stop();
         //int Ti = pi_perf_read(PI_PERF_ACTIVE_CYCLES);
         //PRINTF("Cycles shutterless: %10d\n",Ti);

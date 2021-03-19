@@ -6,11 +6,6 @@
  */
 
 //Fixed point versions
-int32_t preFiltering_fixed(uint16_t* img_input_fp16,uint16_t* img_offset_fp16,uint8_t q_output);
-
-//This is the new filtering integrating bad pixels handling:
-int32_t shutterless_fixed(uint16_t* img_input_fp16,uint16_t* img_offset_fp16,uint8_t q_output);
-
+int32_t shutterless_fixed(int16_t*  img_input_fp16,int16_t* img_offset_fp16, int num_bad_px, int* out_min, int* out_max);
 //Floating point versions
-int32_t preFiltering_float(uint16_t* img_input_fp16,uint16_t* img_offset_fp16,uint8_t q_output);
-int32_t shutterless_float(unsigned short* img_input_fp16,unsigned short* img_offset_fp16,uint8_t q_output, float gamma);
+int32_t shutterless_float(int16_t*  img_input_fp16,int16_t* img_offset_fp16, int num_bad_px, int* out_min, int* out_max);

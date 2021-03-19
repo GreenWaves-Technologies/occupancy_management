@@ -8,10 +8,9 @@ To see how to install and use our reference platform you can refer to this [vide
 
 1. **3D Case**       : CAD STL files for 3D case printing
 2. **apk**           : Android apk that connects to GAPoC_B Ble to shows detections.
-3. **calibration**   : This project is meant to retrieve an offset image for you Thermeye camera sensor.
-4. **dataset_tools** : Tools to collect a dataset with the board and to filter images.
-5. **gap8_project**  : Gap8 Application source code
-6. **ssd_train**  : CNN training and fine tuning
+3. **dataset_tools** : This project is meant to retrieve an offset image for you Thermeye camera sensor. Tools to collect a dataset with the board and to filter images.
+4. **gap8_project**  : Gap8 Application source code
+5. **ssd_train**  : CNN training and fine tuning
 
 The dataset used to train the Neural network algorithm can be found [here](https://gwt-website-files.s3.eu-central-1.amazonaws.com/occupancy_management_dataset.zip).
 
@@ -61,22 +60,22 @@ Once the application has executed in the folder dump_out_imgs you can see the re
 
 ### Offset image for your Lynred Thermeye
 
-The Lynred Thermeye needs an offset image to properly filter the input images to feed the NN algorithm. Every Thermeye sensor has his own offset, which is different due to fabrication process of the bolometers. The folder calibration contains a sample project to collect this offset.
+The Lynred Thermeye needs an offset image to properly filter the input images to feed the NN algorithm. Every Thermeye sensor has his own offset, which is different due to fabrication process of the bolometers. The folder dataset_tools/gap8_capture_raw_images contains a sample project to collect this offset and some sample images to test the Calibration Image
 
 Before running the project find a black, flat, cold object, for example the back of a smartphone. You need to use this object to cover the Thermeye lens.
 
 To run the example
 ```
-cd calibration
+cd dataset_tools/gap8_capture_raw_images
 make clean all run
 ```
 
-The project will tell you when to cover the Thermeye lens. After the execution the offset image is saved in the calibration folder under the name Calibration.bin.
+The project will tell you when to cover the Thermeye lens. After the execution the offset image is saved in the offset_img folder under the name Calibration.bin.
 
 To copy it to the gap8 project folder:
 
 ```
-cp Calibration.bin ../gap8_project/
+cp Calibration.bin ../../gap8_project/
 ```
 
 ### Android Application
