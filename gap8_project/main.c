@@ -561,7 +561,7 @@ int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_space = (out_max-out_min);
 
     //Calling shutterless 
-    int error = shutterless_fixed(img_input_fp16,img_offset_fp16,30,&min,&max);
+    int error = shutterless_fixed(img_input_fp16,img_offset_fp16,50,&min,&max);
 
     float div = 1./(max-min);
     int32_t div_fix = FP2FIX(div ,15);
@@ -579,8 +579,8 @@ int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_min = 0;
     int32_t out_max = 255;
     
-    int error = shutterless_float(img_input_fp16,img_offset_fp16,30,&min,&max);    
-    printf("min %d, max %d\n",min,max);
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,50,&min,&max);    
+        
     for(int i=0;i<w*h;i++){
         img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
         img_input_fp16[i]= img_input_fp16[i] << (q_output-8);
@@ -760,7 +760,8 @@ void peopleDetection(void)
         //PRINTF("Calling shutterless filtering\n");
         //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         //pi_perf_reset(); pi_perf_start();
-
+        
+        //if(float_shutterless(ImageIn, img_offset,W,H,INPUT1_Q,1)){
         if(fixed_shutterless(ImageIn, img_offset,W,H,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
