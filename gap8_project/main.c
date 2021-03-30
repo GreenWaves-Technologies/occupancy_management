@@ -40,11 +40,10 @@
 #include <bsp/fs/hostfs.h>
 
 #include "shutterless/PreFiltering.h"
+#include "shutterless/PreFilteringCluster.h"
 #include "ImageDraw.h"
 #include "setup.h"
 
-#define STACK_SIZE           1024*4 //This is for PE0   (Master)
-#define SLAVE_STACK_SIZE     1024 //This is for PE1-7 (Slaves)
 #define MOUNT           1
 #define UNMOUNT         0
 #define CID             0
@@ -67,13 +66,12 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 short int *output8, *output1, *output2, *output3, *output4, *output5, *output6, *output7,*tmp_buffer_classes,*tmp_buffer_boxes;
 
 
-PI_L2 int16_t*img_offset;
-typedef int16_t IMAGE_IN_T;
-PI_L2 IMAGE_IN_T *ImageIn;
+PI_L2 int16_t* img_offset;
+PI_L2 int16_t* ImageIn;
 
 #define BUFFER_SIZE 1024
 static struct pi_device cam;
-
+static struct pi_device cluster_dev;
 
 extern PI_L2 Alps * anchor_layer_2;
 extern PI_L2 Alps * anchor_layer_3;
@@ -141,7 +139,7 @@ static int initNN(){
     int32_t size = 0;
     uint32_t size_total = 0;
 
-    img_offset  = (unsigned short int *) pmsis_l2_malloc(80 * 80 * sizeof(unsigned short int));
+    img_offset  = (unsigned short int *) pmsis_l2_malloc(80 * 80 * sizeof(short int));
     char * buff =  img_offset;
 
     if (img_offset==NULL )
@@ -555,20 +553,22 @@ void go_to_sleep(){
 
 int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w, int h, uint8_t q_output){
     
-    int min,max;
-    int32_t out_min = 0;
+    int16_t min,max;
+    int16_t out_min = 0;
     int32_t out_max = 255;
     int32_t out_space = (out_max-out_min);
-
-    //Calling shutterless 
-    int error = shutterless_fixed(img_input_fp16,img_offset_fp16,50,&min,&max);
+   
+    //Optmized shutterless running on cluster (cluster must be open ahead and have enough free memory)
+    int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,40,&min,&max);
+    //Calling shutterless running on fabric controller
+    //int error = shutterless_fixed_fc(img_input_fp16,img_offset_fp16,40,&min,&max);
 
     float div = 1./(max-min);
     int32_t div_fix = FP2FIX(div ,15);
 
     //Normalizing to 8 bit and changing fixed point format for NN.
     for(int i=0;i<w*h;i++){
-        img_input_fp16[i]= (int16_t)(((out_space)* ((((((int32_t)img_input_fp16[i])-min))*div_fix)))>>(15-q_output+8));
+        img_input_fp16[i]= (int16_t)(((out_space)* ((((((int32_t)img_input_fp16[i])-(int32_t)min))*div_fix)))>>(15-q_output+8));
     }
 
     return error;
@@ -618,13 +618,13 @@ void peopleDetection(void)
     PRINTF("Entering main controller\n");
 
     
-    unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(IMAGE_IN_T));
+    unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(int16_t));
     if (ImageInChar == 0)
     {
-        PRINTF("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
+        PRINTF("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(int16_t));
         return 1;
     }
-    ImageIn = (IMAGE_IN_T *)ImageInChar;
+    ImageIn = (int16_t *)ImageInChar;
 
     #ifdef INPUT_FILE
     //Reading Image from Bridge
@@ -651,7 +651,6 @@ void peopleDetection(void)
     #endif
 
     /* Configure And open cluster. */
-    struct pi_device cluster_dev;
     struct pi_cluster_conf cl_conf;
     cl_conf.id = 0;
     pi_open_from_conf(&cluster_dev, (void *) &cl_conf);
@@ -679,10 +678,15 @@ void peopleDetection(void)
     }
 
     PRINTF("Constructor\n");
-    if (lynredCNN_Construct())
+    if (lynredCNN_Construct(0))
     {
         PRINTF("Graph constructor exited with an error\n");
         return 1;
+    }
+    //Deallocating L1 to be used by other cluster calls
+    if(lynredCNN_Destruct(1)){
+        printf("Error deallocating L1 for cluster...\n");
+        pmsis_exit(-1);
     }
 
     //SSD Allocations
@@ -761,7 +765,9 @@ void peopleDetection(void)
         //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
         //pi_perf_reset(); pi_perf_start();
         
+        //The shutterless floating point version was done just for reference...very slow on gap.
         //if(float_shutterless(ImageIn, img_offset,W,H,INPUT1_Q,1)){
+
         if(fixed_shutterless(ImageIn, img_offset,W,H,INPUT1_Q)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
@@ -774,8 +780,14 @@ void peopleDetection(void)
         #endif
         PRINTF("Call cluster\n");
         //pi_gpio_pin_write(NULL, USER_GPIO , 1);
+        //Calling warm constructor to allocate only L1
+        if(lynredCNN_Construct(1)){
+            printf("Error allocating L1 for cluster...\n");
+            pmsis_exit(-1);
+        }
         pi_cluster_send_task_to_cl(&cluster_dev, task);
-
+        //Calling warm destructor to deallocate only L1
+        lynredCNN_Destruct(1);
 
         #ifdef SAVE_TO_PC
         char string_buffer[50];
@@ -799,7 +811,7 @@ void peopleDetection(void)
         //go_to_sleep();
     }
 
-    lynredCNN_Destruct();
+    lynredCNN_Destruct(0);
 
     // Close the cluster
     pi_cluster_close(&cluster_dev);
