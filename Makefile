@@ -1,4 +1,4 @@
-LIB_VER=1.3.0
+LIB_VER=1.5.0
 export SHUTTERLESS_LIB=libshutterless.${LIB_VER}.a
 export SHUTTERLESS_LIB_URL=.shutterless_url
 

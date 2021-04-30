@@ -127,7 +127,6 @@ ifeq ($(platform),gvsoc)
   PLPBRIDGE_FLAGS+= -f
 endif
 
-export GAP_USE_OPENOCD=1
 io=host
 
 ifeq ($(SAVE_TO_PC),1)

@@ -17,12 +17,8 @@ APP_SRCS        += thermal_eye.c
 APP_INC	        += .
 APP_CFLAGS      +=
 
-PMSIS_OS?=pulpos
-BOARD_NAME=gapoc_b
-
 GAP_FLAGS += -I$(TILER_INC) 
 
-export GAP_USE_OPENOCD=1
 io=host
 
 

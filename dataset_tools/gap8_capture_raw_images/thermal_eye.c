@@ -27,10 +27,10 @@
 #include "bsp/fs.h"
 
 
-#define NUM_OFFSET_IMG 5
+#define NUM_OFFSET_IMG 2
 #define TIME_DELAY_OFFSET_IMG 2
 
-#define NUM_TEST_IMG 10
+#define NUM_TEST_IMG 5
 
 #define IMG_WIDTH  ( 80 )
 #define IMG_HEIGHT ( 80 )
@@ -80,7 +80,6 @@ void test_therm_eye()
     pi_gpio_pin_write(NULL, GPIO_USER_LED, 0);
     pi_time_wait_us(3 * 1000 * 1000);
     //printf("Buffer %p, size %d\n", calib_buffer, IMG_SIZE * sizeof(uint16_t));
-
 
     for(int i=0;i>IMG_SIZE;i++) img_buffer[i]=0;
 

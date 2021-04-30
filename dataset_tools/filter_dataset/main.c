@@ -22,8 +22,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
 
 #include "limits.h"
 #include "shutterless.h"
@@ -118,28 +116,9 @@ int main(int argc, char** argv)
 {
 	struct dirent *dp;
 	DIR *dfd;
-	DIR* out_dir;
 	char output_folder_raw[] = "filtered_raw"; 
 	char output_folder_pgm[] = "filtered_pgm"; 
 
-
-	out_dir = opendir(output_folder_raw);
-	if (out_dir) {
-    	/* Directory exists. */
-    	closedir(out_dir);
-	} else if (ENOENT == errno) {
-		printf("output directory does not exists!\n");
-		return -1;
-    }
-
-    out_dir = opendir(output_folder_pgm);
-	if (out_dir) {
-    	/* Directory exists. */
-    	closedir(out_dir);
-	} else if (ENOENT == errno) {
-		printf("output directory does not exists!\n");
-		return -1;
-    }
 
 	char *dir ;
 	dir = argv[2] ;
