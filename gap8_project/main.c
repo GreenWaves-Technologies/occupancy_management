@@ -36,7 +36,7 @@
 
 #include "bsp/camera/thermeye.h"
 
-#include "bsp/fs.h"
+#include "bsp/fs/readfs.h"
 #include <bsp/fs/hostfs.h>
 
 #include "shutterless/PreFiltering.h"
@@ -80,15 +80,19 @@ extern PI_L2 Alps * anchor_layer_5;
 
 PI_L2 bboxs_t bbxs;
 
+extern L1_CL_MEM AT_L1_POINTER lynred_L1_Memory;
+
+
 void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
 {
-    struct pi_fs_conf fsconf;
-    struct pi_spiflash_conf flash_conf;
+    struct pi_readfs_conf fsconf;
 
     /* Init & open flash. */
     #if defined(QSPI)
+    struct pi_spiflash_conf flash_conf;
     pi_spiflash_conf_init(&flash_conf);
     #else
+    struct pi_hyperflash_conf flash_conf;
     pi_hyperflash_conf_init(&flash_conf);
     #endif
     pi_open_from_conf(flash, &flash_conf);
@@ -98,12 +102,9 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
         pmsis_exit(-1);
     }
 
-    pi_fs_conf_init(&fsconf);
-
-    //fsconf.type = PI_FS_HOST;
-    fsconf.flash = flash;
-    fsconf.type = PI_FS_READ_ONLY;
-
+    pi_readfs_conf_init(&fsconf);
+    fsconf.fs.flash = flash;
+    
     pi_open_from_conf(fs, &fsconf);
 
     if (pi_fs_mount(fs)){
@@ -559,7 +560,7 @@ int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_space = (out_max-out_min);
    
     //Optmized shutterless running on cluster (cluster must be open ahead and have enough free memory)
-    int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,40,&min,&max);
+    int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,20,&min,&max);
     //Calling shutterless running on fabric controller
     //int error = shutterless_fixed_fc(img_input_fp16,img_offset_fp16,40,&min,&max);
 
@@ -579,7 +580,7 @@ int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_min = 0;
     int32_t out_max = 255;
     
-    int error = shutterless_float(img_input_fp16,img_offset_fp16,50,&min,&max);    
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,40,&min,&max);    
         
     for(int i=0;i<w*h;i++){
         img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
@@ -761,10 +762,9 @@ void peopleDetection(void)
 
         #ifndef INPUT_FILE
 
-        //PRINTF("Calling shutterless filtering\n");
-        //pi_perf_conf(1 << PI_PERF_ACTIVE_CYCLES);
-        //pi_perf_reset(); pi_perf_start();
-        
+        PRINTF("Calling shutterless filtering\n");
+        int tm = pi_time_get_us();
+
         //The shutterless floating point version was done just for reference...very slow on gap.
         //if(float_shutterless(ImageIn, img_offset,W,H,INPUT1_Q,1)){
 
@@ -772,22 +772,30 @@ void peopleDetection(void)
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);
         }
+
         
-        //pi_perf_stop();
-        //int Ti = pi_perf_read(PI_PERF_ACTIVE_CYCLES);
-        //PRINTF("Cycles shutterless: %10d\n",Ti);
+        pi_perf_stop();
+        tm = pi_time_get_us() - tm;
+        PRINTF("Shutterless %f us\n", ((float)tm)/1000);
 
         #endif
         PRINTF("Call cluster\n");
         //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         //Calling warm constructor to allocate only L1
-        if(lynredCNN_Construct(1)){
-            printf("Error allocating L1 for cluster...\n");
-            pmsis_exit(-1);
-        }
+        
+        //This call is giving issues still need to be investigated
+        //if(lynredCNN_Construct(1)){
+        //    printf("Error allocating L1 for cluster...\n");
+        //    pmsis_exit(-1);
+        //}
+        
+        lynred_L1_Memory = pmsis_l1_malloc(_lynred_L1_Memory_SIZE);
+
         pi_cluster_send_task_to_cl(&cluster_dev, task);
         //Calling warm destructor to deallocate only L1
-        lynredCNN_Destruct(1);
+        //Same as above
+        //lynredCNN_Destruct(1);
+        pmsis_l1_malloc_free(lynred_L1_Memory,_lynred_L1_Memory_SIZE);
 
         #ifdef SAVE_TO_PC
         char string_buffer[50];

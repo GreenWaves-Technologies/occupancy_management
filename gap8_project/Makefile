@@ -107,10 +107,10 @@ APP_CFLAGS += -D$(EXT_MEM_TYPE)
 pulpChip = GAP
 APP = PeopleDetection
 
-APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(CNN_LIB) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
+APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(MODEL_LIB_POW2) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
 APP_CFLAGS += -w -O3 -s -mno-memcpy -fno-tree-loop-distribute-patterns
-APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(CNN_LIB_INCLUDE)
+APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
 APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
 APP_INC +=
 
