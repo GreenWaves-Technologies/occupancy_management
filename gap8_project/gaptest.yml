@@ -1,0 +1,33 @@
+name: occupancy_management
+boards: []
+platforms: 
+    - board
+    - gvsoc
+os: 
+    - freertos
+    - pulpos
+chips: 
+    - gap8
+variants:
+    gap8:
+        name: standard
+        tags:
+            - integration
+            - release
+        duration: standard
+        os: 
+           - pulpos
+        chips:
+            - gap8
+        flags: ~
+    # gap9:
+    #     name: standard
+    #     tags:
+    #         - integration
+    #         - release
+    #     os: 
+    #        - pulpos
+    #     chips:
+    #         - gap9
+    #     duration: standard
+    #     flags: ~
