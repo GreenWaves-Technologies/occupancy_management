@@ -46,6 +46,7 @@ ifndef GAP_SDK_HOME
 endif
 
 MODEL_PREFIX=lynred
+MODEL_FP16=1
 ifndef NN_BITS
 	NN_BITS=16
 endif
@@ -107,10 +108,10 @@ APP_CFLAGS += -D$(EXT_MEM_TYPE)
 pulpChip = GAP
 APP = PeopleDetection
 
-APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) SSDBasicKernels.c $(MODEL_LIB_POW2) $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
+APP_SRCS += main.c ImgIO.c SSDParams.c $(MODEL_GEN_C) $(CNN_LIB) SSDBasicKernels.c  $(SSD_MODEL_GEN_C) ImageDraw.c BleNotifier.c
 
 APP_CFLAGS += -w -O3 -s -mno-memcpy -fno-tree-loop-distribute-patterns
-APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(GEN_PATH) -I$(MODEL_BUILD) $(MODEL_LIB_INCLUDE_POW2)
+APP_CFLAGS += -I. -I./helpers -I$(TILER_EMU_INC) -I$(TILER_INC) -I$(CNN_LIB_INCLUDE) -I$(GEN_PATH) -I$(MODEL_BUILD)
 APP_LDFLAGS += -L$(MAKEFILE_PATH)/shutterless/ -lshutterless -lm
 APP_INC +=
 
