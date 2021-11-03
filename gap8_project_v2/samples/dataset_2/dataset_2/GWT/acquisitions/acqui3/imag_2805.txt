@@ -1,0 +1,2 @@
+imag_2805.jpg ﻿manual_finger 15 20 36 42
+imag_2805.jpg ﻿manual_finger 64 10 79 30

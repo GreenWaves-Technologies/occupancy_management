@@ -1,0 +1,11 @@
+image_161.jpg ﻿manual_finger 33.0 10.0 57.0 27.0
+image_161.jpg ﻿manual_finger 48.0 1.0 61.0 11.0
+image_161.jpg ﻿manual_finger 30.0 1.0 45.0 10.0
+image_161.jpg ﻿manual_finger 48.0 59.0 67.0 74.0
+image_161.jpg ﻿manual_finger 29.0 61.0 45.0 77.0
+image_161.jpg ﻿manual_finger 7.0 54.0 27.0 69.0
+image_161.jpg ﻿manual_finger 56.0 23.0 76.0 40.0
+image_161.jpg ﻿manual_finger 14.0 6.0 32.0 23.0
+image_161.jpg ﻿manual_finger 8.0 1.0 20.0 11.0
+image_161.jpg ﻿manual_finger 1.0 39.0 12.0 54.0
+image_161.jpg ﻿manual_finger 1.0 16.0 14.0 31.0

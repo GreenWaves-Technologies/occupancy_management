@@ -1,0 +1,2 @@
+imag_1049.jpg ﻿manual_finger 4 40 28 64
+imag_1049.jpg ﻿manual_finger 62 35 79 58

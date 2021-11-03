@@ -1,0 +1,8 @@
+image_151.jpg ﻿manual_finger 8 48 26 68
+image_151.jpg ﻿manual_finger 29 57 47 75
+image_151.jpg ﻿manual_finger 49 62 63 80
+image_151.jpg ﻿manual_finger 54 20 74 37
+image_151.jpg ﻿manual_finger 33 7 52 27
+image_151.jpg ﻿manual_finger 14 5 30 23
+image_151.jpg ﻿manual_finger 1 11 15 28
+image_151.jpg ﻿manual_finger 1 40 12 53

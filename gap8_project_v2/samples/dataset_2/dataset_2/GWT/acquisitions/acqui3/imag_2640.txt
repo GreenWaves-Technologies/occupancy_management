@@ -1,0 +1,2 @@
+imag_2640.jpg ﻿manual_finger 63 10 80 23
+imag_2640.jpg ﻿manual_finger 10 56 38 77

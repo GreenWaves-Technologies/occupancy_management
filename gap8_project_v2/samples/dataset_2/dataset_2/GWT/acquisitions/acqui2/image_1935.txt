@@ -1,0 +1,6 @@
+image_1935.jpg ﻿manual_finger 18.0 2.0 27.0 13.0
+image_1935.jpg ﻿manual_finger 23.0 2.0 38.0 18.0
+image_1935.jpg ﻿manual_finger 60.0 7.0 70.0 22.0
+image_1935.jpg ﻿manual_finger 48.0 10.0 60.0 23.0
+image_1935.jpg ﻿manual_finger 50.0 34.0 66.0 48.0
+image_1935.jpg ﻿manual_finger 48.0 48.0 66.0 62.0

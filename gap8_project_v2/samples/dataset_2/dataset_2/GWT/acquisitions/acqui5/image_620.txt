@@ -1,0 +1,3 @@
+image_620.jpg ﻿manual_finger 10 27 31 50
+image_620.jpg ﻿manual_finger 34 52 52 72
+image_620.jpg ﻿manual_finger 44 20 65 39

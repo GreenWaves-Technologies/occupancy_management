@@ -1,0 +1,2 @@
+im_40.jpg ﻿manual_finger 1.0 0.0 12.0 9.0
+im_40.jpg ﻿manual_finger 9.0 16.0 22.0 29.0

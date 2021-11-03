@@ -1,0 +1,2 @@
+im_150.jpg ﻿manual_finger 2.0 40.0 14.0 60.0
+im_150.jpg ﻿manual_finger 10.0 18.0 24.0 36.0

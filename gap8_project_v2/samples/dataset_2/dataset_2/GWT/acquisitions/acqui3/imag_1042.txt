@@ -1,0 +1,2 @@
+imag_1042.jpg ﻿manual_finger 4.0 43.0 24.0 63.0
+imag_1042.jpg ﻿manual_finger 62 36 79 57

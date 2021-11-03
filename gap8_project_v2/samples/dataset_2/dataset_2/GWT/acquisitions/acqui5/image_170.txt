@@ -1,0 +1,2 @@
+image_170.jpg ﻿manual_finger 12.0 38.0 32.0 65.0
+image_170.jpg ﻿manual_finger 36.0 42.0 57.0 68.0

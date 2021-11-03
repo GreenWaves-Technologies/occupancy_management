@@ -1,0 +1,2 @@
+imag_1032.jpg ﻿manual_finger 2.0 39.0 22.0 59.0
+imag_1032.jpg ﻿manual_finger 62 36 79 62

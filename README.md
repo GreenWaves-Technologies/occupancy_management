@@ -6,13 +6,20 @@ To see how to install and use our reference platform you can refer to this [vide
 
 ## Repository Content Description:
 
-1. **3D Case**       : CAD STL files for 3D case printing
-2. **apk**           : Android apk that connects to GAPoC_B Ble to shows detections.
-3. **dataset_tools** : This project is meant to retrieve an offset image for you Thermeye camera sensor. Tools to collect a dataset with the board and to filter images.
-4. **gap8_project**  : Gap8 Application source code
-5. **ssd_train**  : CNN training and fine tuning
+1. **3D Case**          : CAD STL files for 3D case printing
+2. **apk**              : Android apk that connects to GAPoC_B Ble to shows detections.
+3. **dataset_tools**    : This project is meant to retrieve an offset image for you Thermeye camera sensor. Tools to collect a dataset with the board and to filter images.
+4. **gap8_project**     : Gap8 Application source code CNN with Custom Single Shot Detector (SSD)
+5. **gap8_project_v2**  : Gap8 Application source code Mobilenet based CNN with TF API for SSD
+6. **ssd_train**        : CNN training and fine tuning
 
 The dataset used to train the Neural network algorithm can be found [here](https://gwt-website-files.s3.eu-central-1.amazonaws.com/occupancy_management_dataset.zip).
+
+The difference between gap8_project and gap8_project_v2 are only related to the CNN which is performing the people detection:
+
+- gap8_project_v2 has been trained with a larger dataset of about XXX K images while 
+- gap8_project_v2 has a different NN architecture and has better integration with NNTool. The SSD is integrated in the tflite with the Tensor Flow object detection API and is not automatically translated by nntool.
+
 
 ## Getting Started
 
@@ -43,14 +50,14 @@ You will be asked to enter your details and will receive a link to copy/paste in
 To run the application:
 
 ```
-cd gap8_project
+cd gap8_project_v2
 make clean all run
 ```
 
 If you do not have a board and want to test it on GVSoC you can simply add this flag to the make command:
 
 ```
-cd gap8_project
+cd gap8_project_v2
 make clean all run platform=gvsoc
 ```
 
@@ -75,7 +82,7 @@ The project will tell you when to cover the Thermeye lens. After the execution t
 To copy it to the gap8 project folder:
 
 ```
-cp Calibration.bin ../../gap8_project/
+cp Calibration.bin ../../gap8_project_v2/
 ```
 
 ### Android Application
@@ -104,12 +111,13 @@ If you want to flash the board to boot from the embedded flash, you have to foll
 
 1. Burn the efuse to boot from flash.
 
-Move the selector one on the board to position close (some leds should turn on). This enables the 2.5 V to properly power supply the gap8 for efuse burning. Then run the following script:
+Move the selector one on the board to position close (some leds should turn on). This enables the 2.5 V to properly power supply the gap8 for efuse burning. Check if you have an HyperFlash or QSPIFlash board and then run the following script, the script will ask if you want to burn boot from Hyper Flash or from QSPI Flash:
 
 ```
-cd gap8_project
+cd utils
 ./burn_boot_hyperflash_efuse.sh
 ```
+
 
 2. Configure the Makefile as follows:
 

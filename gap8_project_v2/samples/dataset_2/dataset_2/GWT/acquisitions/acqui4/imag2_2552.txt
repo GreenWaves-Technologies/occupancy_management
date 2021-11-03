@@ -1,0 +1,2 @@
+imag2_2552.jpg ﻿manual_finger 44.0 55.0 62.0 76.0
+imag2_2552.jpg ﻿manual_finger 3.0 43.0 20.0 63.0

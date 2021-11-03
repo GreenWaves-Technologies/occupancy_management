@@ -1,0 +1,2 @@
+imag_10421.jpg ﻿manual_finger 3 43 21 60
+imag_10421.jpg ﻿manual_finger 60 12 78 31

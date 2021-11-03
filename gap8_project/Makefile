@@ -24,7 +24,7 @@ APP_CFLAGS += -DINPUT_FILE
 #GAP_FLAGS += -DINPUT_RAW_FILE
 ##  To save output results to host PC
 ##  This is usefull for application debug
-#SAVE_TO_PC=1
+SAVE_TO_PC=1
 ##  In full demo mode ble should be activated and silent as well, since printfs block the execution if set over jtag
 ##  To disable all printf (needed to flash application to boot from flash):
 #APP_CFLAGS += -DSILENT=1
@@ -46,7 +46,6 @@ ifndef GAP_SDK_HOME
 endif
 
 MODEL_PREFIX=lynred
-MODEL_FP16=1
 ifndef NN_BITS
 	NN_BITS=16
 endif

@@ -1,0 +1,2 @@
+imag2_3923.jpg ﻿manual_finger 10.0 53.0 28.0 70.0
+imag2_3923.jpg ﻿manual_finger 8 2 24 20

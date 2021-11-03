@@ -1,0 +1,2 @@
+im_37.jpg ﻿manual_finger 8 16 22 30
+im_37.jpg ﻿manual_finger 1 30 11 48

@@ -1,0 +1,2 @@
+imag_2741.jpg ﻿manual_finger 4 4 24 31
+imag_2741.jpg ﻿manual_finger 64 12 79 30

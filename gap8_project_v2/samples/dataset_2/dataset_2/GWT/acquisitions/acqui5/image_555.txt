@@ -1,0 +1,2 @@
+image_555.jpg ﻿manual_finger 7 23 33 50
+image_555.jpg ﻿manual_finger 48 18 69 37

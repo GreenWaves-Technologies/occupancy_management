@@ -1,0 +1,3 @@
+imag2_2416.jpg ﻿manual_finger 59 8 75 25
+imag2_2416.jpg ﻿manual_finger 11 14 26 32
+imag2_2416.jpg ﻿manual_finger 12 39 26 57

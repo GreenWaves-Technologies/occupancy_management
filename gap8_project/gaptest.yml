@@ -1,4 +1,4 @@
-name: occupancy_management
+name: occupancy_management_v1
 boards: []
 platforms: 
     - board
@@ -9,7 +9,7 @@ os:
 chips: 
     - gap8
 variants:
-    gap8:
+    gap8_input_file:
         name: standard
         tags:
             - integration
@@ -19,15 +19,15 @@ variants:
            - pulpos
         chips:
             - gap8
-        flags: ~
-    # gap9:
-    #     name: standard
-    #     tags:
-    #         - integration
-    #         - release
-    #     os: 
-    #        - pulpos
-    #     chips:
-    #         - gap9
-    #     duration: standard
-    #     flags: ~
+        flags: MODE=INPUT_FILE
+    gap8_input_raw_file:
+        name: standard
+        tags:
+            - integration
+            - release
+        duration: standard
+        os: 
+           - pulpos
+        chips:
+            - gap8
+        flags: MODE=INPUT_RAW_FILE

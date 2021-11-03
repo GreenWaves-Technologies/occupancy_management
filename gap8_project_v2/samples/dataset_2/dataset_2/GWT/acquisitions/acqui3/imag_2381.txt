@@ -1,0 +1,2 @@
+imag_2381.jpg ﻿manual_finger 64 10 79 35
+imag_2381.jpg ﻿manual_finger 22 57 47 79

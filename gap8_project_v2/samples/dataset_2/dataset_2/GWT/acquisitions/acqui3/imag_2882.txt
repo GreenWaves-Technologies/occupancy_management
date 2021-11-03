@@ -1,0 +1,2 @@
+imag_2882.jpg ﻿manual_finger 1 10 25 35
+imag_2882.jpg ﻿manual_finger 62 10 79 30

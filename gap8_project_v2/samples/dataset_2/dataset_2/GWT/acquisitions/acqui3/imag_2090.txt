@@ -1,0 +1,3 @@
+imag_2090.jpg ﻿manual_finger 10 37 28 58
+imag_2090.jpg ﻿manual_finger 6 7 27 27
+imag_2090.jpg ﻿manual_finger 66 1 80 17
