@@ -220,9 +220,9 @@ void printBboxes(bboxs_t *boundbxs){
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
         if(boundbxs->bbs[counter].alive)
-            PRINTF("bbox [%02d] : %d     %d    %d     %d    %d     %02d\n",
+            PRINTF("bbox [%02d] : %.5f     %03d    %03d     %03d    %03d     %02d\n",
                 counter,
-                boundbxs->bbs[counter].score,
+                FIX2FP(boundbxs->bbs[counter].score,15 ),
                 boundbxs->bbs[counter].x,
                 boundbxs->bbs[counter].y,
                 boundbxs->bbs[counter].w,
@@ -264,25 +264,25 @@ void CI_checks(bboxs_t *boundbxs){
             INF[c++].h = boundbxs->bbs[counter].h;
         }
     }
-    for(int i=0;i<3 i++){
+    for(int i=0;i<3; i++){
         if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].x < GT[i].x - 2 || INF[i].x > GT[i].x + 2){
-            printf("Error in CI Checks...");
+        if(INF[i].x < GT[i].x - 1 || INF[i].x > GT[i].x + 1){
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].y < GT[i].y - 2 || INF[i].y > GT[i].y + 2){
-            printf("Error in CI Checks...");
+        if(INF[i].y < GT[i].y - 1 || INF[i].y > GT[i].y + 1){
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].w < GT[i].w - 2 || INF[i].w > GT[i].w + 2){
-            printf("Error in CI Checks...");
+        if(INF[i].w < GT[i].w - 1 || INF[i].w > GT[i].w + 1){
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].h < GT[i].h - 2 || INF[i].h > GT[i].h + 2){
-            printf("Error in CI Checks...");
+        if(INF[i].h < GT[i].h - 1 || INF[i].h > GT[i].h + 1){
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
     }
@@ -315,25 +315,25 @@ void CI_checks(bboxs_t *boundbxs){
             INF[c++].h = boundbxs->bbs[counter].h;
         }
     }
-    for(int i=0;i<2 i++){
+    for(int i=0;i<2; i++){
         if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
         if(INF[i].x < GT[i].x - 2 || INF[i].x > GT[i].x + 2){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
         if(INF[i].y < GT[i].y - 2 || INF[i].y > GT[i].y + 2){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
         if(INF[i].w < GT[i].w - 2 || INF[i].w > GT[i].w + 2){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
         if(INF[i].h < GT[i].h - 2 || INF[i].h > GT[i].h + 2){
-            printf("Error in CI Checks...");
+            printf("Error in CI Checks...\n");
             pmsis_exit(-1);
         }
     }
@@ -538,10 +538,6 @@ static void RunNN()
     printBboxes_forPython(&bbxs);
     #endif
 
-    #ifdef CI
-    CI_checks(&bbxs);
-    #endif
-    
     PRINTF("Cycles NN : %10d\n",ti_nn);
     PRINTF("Cycles SSD: %10d\n",ti_ssd);
 
@@ -937,6 +933,10 @@ void peopleDetection(void)
 
     // Close the cluster
     pi_cluster_close(&cluster_dev);
+
+    #ifdef CI
+    CI_checks(&bbxs);
+    #endif
 
     PRINTF("Ended\n");
     pmsis_exit(0);
