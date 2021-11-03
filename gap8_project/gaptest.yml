@@ -10,7 +10,7 @@ chips:
     - gap8
 variants:
     gap8_input_file:
-        name: standard
+        name: gap8_input_file
         tags:
             - integration
             - release
@@ -21,7 +21,7 @@ variants:
             - gap8
         flags: MODE=INPUT_FILE
     gap8_input_raw_file:
-        name: standard
+        name: gap8_input_raw_file
         tags:
             - integration
             - release

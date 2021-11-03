@@ -17,11 +17,23 @@
 # Application configuration flags: #
 #                                  #
 
-##  if you want to test the application with an input file from host PC use this flag:
-##  Note that in this case the shutterless filtering is desactivated:
-APP_CFLAGS += -DINPUT_FILE
-## To test prefiltering with a raw image
-#GAP_FLAGS += -DINPUT_RAW_FILE
+
+MODE?=INPUT_FILE
+
+ifeq ($(MODE),INPUT_FILE)
+	##  if you want to test the application with an input file from host PC use this flag:
+	##  Note that in this case the shutterless filtering is desactivated:
+	APP_CFLAGS += -DINPUT_FILE
+	APP_CFLAGS += -DCI 
+else ifeq ($(MODE),INPUT_RAW_FILE)
+	## To test prefiltering with a raw image
+	APP_CFLAGS += -DINPUT_RAW_FILE
+	APP_CFLAGS += -DCI
+else ifeq ($(MODE),INPUT_CAMERA)
+	#Camera is default so no flags are needed
+	APP_CFLAGS += 
+endif
+
 ##  To save output results to host PC
 ##  This is usefull for application debug
 SAVE_TO_PC=1

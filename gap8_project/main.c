@@ -220,15 +220,125 @@ void printBboxes(bboxs_t *boundbxs){
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
         if(boundbxs->bbs[counter].alive)
-            PRINTF("bbox [%02d] : %.5f     %03d    %03d     %03d    %03d     %02d\n",
+            PRINTF("bbox [%02d] : %d     %d    %d     %d    %d     %02d\n",
                 counter,
-                FIX2FP(boundbxs->bbs[counter].score,15 ),
+                boundbxs->bbs[counter].score,
                 boundbxs->bbs[counter].x,
                 boundbxs->bbs[counter].y,
                 boundbxs->bbs[counter].w,
                 boundbxs->bbs[counter].h,
                 boundbxs->bbs[counter].class);
     }//
+}
+
+
+void CI_checks(bboxs_t *boundbxs){
+    #ifdef INPUT_FILE
+    bbox_t GT[3];
+    bbox_t INF[3];
+    GT[0].score = 32765;
+    GT[0].x = 1;
+    GT[0].y = 30;
+    GT[0].w = 20;
+    GT[0].h = 26;
+
+    GT[1].score = 32743;
+    GT[1].x = 36;
+    GT[1].y = 56;
+    GT[1].w = 18;
+    GT[1].h = 22;
+    
+    GT[2].score = 32720;
+    GT[2].x = 50;
+    GT[2].y = 5;
+    GT[2].w = 21;
+    GT[2].h = 21;
+    int c=0;
+
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive){
+            INF[c].score = boundbxs->bbs[counter].score;
+            INF[c].x = boundbxs->bbs[counter].x;
+            INF[c].y = boundbxs->bbs[counter].y;
+            INF[c].w = boundbxs->bbs[counter].w;
+            INF[c++].h = boundbxs->bbs[counter].h;
+        }
+    }
+    for(int i=0;i<3 i++){
+        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].x < GT[i].x - 2 || INF[i].x > GT[i].x + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].y < GT[i].y - 2 || INF[i].y > GT[i].y + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].w < GT[i].w - 2 || INF[i].w > GT[i].w + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].h < GT[i].h - 2 || INF[i].h > GT[i].h + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+    }
+    #endif
+    
+    #ifdef INPUT_RAW_FILE
+    bbox_t GT[2];
+    bbox_t INF[2];
+
+    GT[0].score = 32490;
+    GT[0].x = 42;
+    GT[0].y = 55;
+    GT[0].w = 13;
+    GT[0].h = 13;
+
+    GT[1].score = 20464;
+    GT[1].x = 14;
+    GT[1].y = 29;
+    GT[1].w = 9;
+    GT[1].h = 13;
+
+    int c=0;
+
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive){
+            INF[c].score = boundbxs->bbs[counter].score;
+            INF[c].x = boundbxs->bbs[counter].x;
+            INF[c].y = boundbxs->bbs[counter].y;
+            INF[c].w = boundbxs->bbs[counter].w;
+            INF[c++].h = boundbxs->bbs[counter].h;
+        }
+    }
+    for(int i=0;i<2 i++){
+        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].x < GT[i].x - 2 || INF[i].x > GT[i].x + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].y < GT[i].y - 2 || INF[i].y > GT[i].y + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].w < GT[i].w - 2 || INF[i].w > GT[i].w + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+        if(INF[i].h < GT[i].h - 2 || INF[i].h > GT[i].h + 2){
+            printf("Error in CI Checks...");
+            pmsis_exit(-1);
+        }
+    }
+
+    #endif
 }
 
 
@@ -428,6 +538,10 @@ static void RunNN()
     printBboxes_forPython(&bbxs);
     #endif
 
+    #ifdef CI
+    CI_checks(&bbxs);
+    #endif
+    
     PRINTF("Cycles NN : %10d\n",ti_nn);
     PRINTF("Cycles SSD: %10d\n",ti_ssd);
 
@@ -560,9 +674,9 @@ int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_space = (out_max-out_min);
    
     //Optmized shutterless running on cluster (cluster must be open ahead and have enough free memory)
-    int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,20,&min,&max);
+    int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,30,&min,&max);
     //Calling shutterless running on fabric controller
-    //int error = shutterless_fixed_fc(img_input_fp16,img_offset_fp16,40,&min,&max);
+    //int error = shutterless_fixed_fc(img_input_fp16,img_offset_fp16,30,&min,&max);
 
     float div = 1./(max-min);
     int32_t div_fix = FP2FIX(div ,15);
@@ -580,7 +694,7 @@ int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_min = 0;
     int32_t out_max = 255;
     
-    int error = shutterless_float(img_input_fp16,img_offset_fp16,40,&min,&max);    
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,30,&min,&max);    
         
     for(int i=0;i<w*h;i++){
         img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
