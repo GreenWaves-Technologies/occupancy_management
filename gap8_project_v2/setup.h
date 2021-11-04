@@ -25,6 +25,6 @@
 
 #define MAX_OUT_BB 10
 #define NON_MAX_THRES 70
-#define MAX_BB 100
+#define MAX_BB 10
 
-#define SCORE_THR (0.73*128)
+#define SCORE_THR (FIX2FP(0.73,7))

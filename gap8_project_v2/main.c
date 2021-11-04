@@ -234,11 +234,9 @@ void printBboxes(bboxs_t *boundbxs){
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
         if(boundbxs->bbs[counter].alive)
-            //PRINTF("bbox [%02d] : %.5f     %03d    %03d     %03d    %03d     %02d\n",
-            PRINTF("bbox [%02d] : %d    %03d    %03d     %03d    %03d     %02d\n",
+            PRINTF("bbox [%02d] : %.5f     %03d    %03d     %03d    %03d     %02d\n",
                 counter,
-                //FIX2FP(boundbxs->bbs[counter].score,7 ),
-                boundbxs->bbs[counter].score,
+                FIX2FP(boundbxs->bbs[counter].score,7 ),
                 boundbxs->bbs[counter].x,
                 boundbxs->bbs[counter].y,
                 boundbxs->bbs[counter].w,
@@ -379,20 +377,18 @@ void CI_checks(bboxs_t *boundbxs){
 static void RunNN()
 {
     unsigned int ti,ti_nn,ti_ssd;
-        for(int i=0;i<10;i++){
-            output_1[i]=0;
-            output_2[i]=0;
-        }
+    for(int i=0;i<10;i++){
+        output_1[i]=0;
+        output_2[i]=0;
+    }
+    for(int i=0;i<MAX_BB;i++)bbxs.bbs[i].alive=0;
 
     gap_cl_starttimer();
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
 
-    //for(int i=0;i<MAX_BB;i++) out_boxes[i].alive=0;
     bbxs.num_bb = 0;
-
     lynredCNN(ImageInChar, output_1,output_2,output_3);
-
     ti_nn = gap_cl_readhwtimer()-ti;
 
     for(int i=0;i<10;i++)
@@ -410,75 +406,43 @@ static void RunNN()
             bbxs.bbs[i].w = ((output_1[4*i+3]-output_1[4*i+1])*lynred_Output_1_OUT_SCALE)*80;
             bbxs.bbs[i].h = ((output_1[4*i+2]-output_1[4*i])*lynred_Output_1_OUT_SCALE)*80;
             bbxs.num_bb++;
-/*            if(bbxs.bbs[i].score > SCORE_THR)
-            {
-                int box_x = bbxs.bbs[i].x;
-                int box_y = bbxs.bbs[i].y;
-                int box_w = bbxs.bbs[i].w;
-                int box_h = bbxs.bbs[i].h;
-                PRINTF("BBOX (x, y, w, h): (%d, %d, %d, %d) SCORE: %f\n", box_x, box_y, box_w, box_h, FIX2FP(bbxs.bbs[i].score,7));
-            }
-*/        }
+
+        }
     }
 
     #if !defined SILENT
     printBboxes(&bbxs);
     #endif
 
-
     PRINTF("Cycles NN : %10d\n",ti_nn);
     
 }
-
-
-            uint32_t x;
-    uint32_t y;
-    uint32_t w;
-    uint32_t h;
-    int16_t score;
-    uint16_t class;
-    uint8_t alive;
-        
-        
-        
-        
-        
-        
-
 
 char bleDetString[200];
 char tmpString[200];
 int dt;
 int old_dt;
 float thres;
-void sendResultsToBle(bbox_t *boundbxs){
+void sendResultsToBle(bboxs_t *boundbxs){
 
     int stringLenght = 0;
     int AliveBBs=0;
-
-
-    for (int counter=0;counter< MAX_BB;counter++){
-         if(boundbxs[counter].alive && (boundbxs[counter].score > SCORE_THR)){
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
             AliveBBs++;
         }
     }
     if(AliveBBs>MAX_OUT_BB) AliveBBs=MAX_OUT_BB;
 
     stringLenght+=sprintf(bleDetString,"%d;",AliveBBs);
-    AliveBBs=0;
-    for (int counter=0;counter< MAX_BB;counter++){
-         if(boundbxs[counter].alive && (boundbxs[counter].score > SCORE_THR) && AliveBBs<MAX_OUT_BB){
 
-            int box_x = boundbxs[counter].x;
-            int box_y = boundbxs[counter].y;
-            int box_w = boundbxs[counter].w;
-            int box_h = boundbxs[counter].h;
-            //Ble application only uses x and y coordinate set to center of Bounding Box
-            int x = box_x + (box_w/2);
-            int y = box_y + (box_h/2);
-            stringLenght+=sprintf(tmpString,"%dx%d;",x, y);
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
+
+            boundbxs->bbs[counter].x = boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
+            boundbxs->bbs[counter].y = boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
+            stringLenght+=sprintf(tmpString,"%dx%d;",boundbxs->bbs[counter].x, boundbxs->bbs[counter].y);
             strcat(bleDetString,tmpString);
-            AliveBBs++;
         }
     }
 
@@ -491,16 +455,11 @@ void sendResultsToBle(bbox_t *boundbxs){
     //printf("String Size: %d\n",stringLenght);
 
     dt = handleDetections(bleDetString,stringLenght);
-/*    if(dt<10)dt=10;
+    if(dt<10)dt=10;
     if(dt!=old_dt){
         old_dt=dt;
         thres = ((float)old_dt)/100;
-        anchor_layer_2->confidence_thr = FP2FIX(thres,15);
-        anchor_layer_3->confidence_thr = FP2FIX(thres,15);
-        anchor_layer_4->confidence_thr = FP2FIX(thres,15);
-        anchor_layer_5->confidence_thr = FP2FIX(thres,15);
-
-    }*/
+    }
 }
 
 int read_raw_image(char* filename, int16_t* buffer,int w,int h){
@@ -678,7 +637,7 @@ void peopleDetection(void)
     }
 
     pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
-    pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
+    pi_freq_set(PI_FREQ_DOMAIN_CL,150000000);
 
     PRINTF("Init NN\n");
     if(initNN())
@@ -788,13 +747,11 @@ void peopleDetection(void)
         PRINTF("Call cluster\n");
         //Explicitly allocating Cluster stack since it could also be used by shutterless
         task->stacks = pmsis_l1_malloc(STACK_SIZE+SLAVE_STACK_SIZE*7);
-    
         //Calling warm constructor to allocate only L1
         if(lynredCNN_Construct(1)){
             printf("Error allocating L1 for cluster...\n");
             pmsis_exit(-1);
         }
-        
         pi_cluster_send_task_to_cl(&cluster_dev, task);
 
         lynredCNN_Destruct(1);
