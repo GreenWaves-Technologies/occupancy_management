@@ -513,6 +513,7 @@ static void RunNN()
     Predecoder5_5(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_5, &bbxs,OUTPUT8_Q);
 
 
+    //Ordering Bounding Boxes on score value for Non-Max supression
     bbox_t temp;
     int changed=0;
     do{
@@ -533,7 +534,6 @@ static void RunNN()
     ti_ssd = gap_cl_readhwtimer()-ti_nn-ti;
 
     #if !defined SILENT
-
     printBboxes(&bbxs);
     printBboxes_forPython(&bbxs);
     #endif

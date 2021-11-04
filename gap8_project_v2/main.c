@@ -61,7 +61,17 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 
 #define FIX2FP(Val, Precision)    ((float) (Val) / (float) (1<<(Precision)))
 
-L2_MEM bbox_t *out_boxes;
+PI_L2 bbox_t *out_boxes;
+typedef struct{
+    bbox_t * bbs;
+    int16_t num_bb;
+}bboxs_t;
+
+PI_L2 bboxs_t bbxs;
+
+L2_MEM short int output_1[40];
+L2_MEM signed char output_2[10];
+L2_MEM signed char output_3[10];
 
 
 PI_L2 int16_t* img_offset;
@@ -194,34 +204,176 @@ int initL3Buffers(){
         return -1;
     }
 
+    bbxs.bbs = pmsis_l2_malloc(sizeof(bbox_t)*MAX_BB);
 
-    //Allocating output bounding boxes
-    out_boxes = (bbox_t *) pmsis_l2_malloc(MAX_BB*sizeof(bbox_t));
-    if(out_boxes==NULL){
-      printf("Error Allocating CNN output buffers");
-      return 1;
+    if(bbxs.bbs==NULL){
+        return 1;
     }
-    
+    bbxs.num_bb = 0;
+
+
     return 0;
 }
 
+void drawBboxes(bboxs_t *boundbxs, uint8_t *img){
 
-void drawBboxes(bbox_t *boundbxs, uint8_t *img, int img_w,int img_h){
-
-     for (int counter=0;counter< MAX_BB;counter++){
-        if(out_boxes[counter].alive && (out_boxes[counter].score > SCORE_THR)){
-            //printf("bb %d\n",counter);
-            int box_x = out_boxes[counter].x;
-            int box_y = out_boxes[counter].y;
-            int box_w = out_boxes[counter].w;
-            int box_h = out_boxes[counter].h;
-            DrawRectangle(img, 80, 80, box_x, box_y, box_w, box_h, 255);
+     for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive){
+            DrawRectangle(img, 80, 80, boundbxs->bbs[counter].x, boundbxs->bbs[counter].y, boundbxs->bbs[counter].w, boundbxs->bbs[counter].h, 255);
         }
     }
 }
-L2_MEM short int output_1[40];
-L2_MEM signed char output_2[10];
-L2_MEM signed char output_3[10];
+
+void printBboxes(bboxs_t *boundbxs){
+    PRINTF("\n\n======================================================");
+    PRINTF("\nDetected Bounding boxes                                 ");
+    PRINTF("\n======================================================\n");
+
+    PRINTF("BoudingBox:  score     cx     cy     w     h    class");
+    PRINTF("\n------------------------------------------------------\n");
+
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive)
+            //PRINTF("bbox [%02d] : %.5f     %03d    %03d     %03d    %03d     %02d\n",
+            PRINTF("bbox [%02d] : %d    %03d    %03d     %03d    %03d     %02d\n",
+                counter,
+                //FIX2FP(boundbxs->bbs[counter].score,7 ),
+                boundbxs->bbs[counter].score,
+                boundbxs->bbs[counter].x,
+                boundbxs->bbs[counter].y,
+                boundbxs->bbs[counter].w,
+                boundbxs->bbs[counter].h,
+                boundbxs->bbs[counter].class);
+    }
+}
+
+void CI_checks(bboxs_t *boundbxs){
+    #ifdef INPUT_FILE
+    bbox_t GT[6];
+    bbox_t INF[6];
+    GT[0].score = 120;
+    GT[0].x = 40;
+    GT[0].y = 61;
+    GT[0].w = 17;
+    GT[0].h = 17;
+
+    GT[1].score = 119;
+    GT[1].x = 31;
+    GT[1].y = 2;
+    GT[1].w = 14;
+    GT[1].h = 21;
+
+    GT[2].score = 116;
+    GT[2].x = 53;
+    GT[2].y = 15;
+    GT[2].w = 17;
+    GT[2].h = 22;
+    
+    GT[3].score = 116;
+    GT[3].x = 17;
+    GT[3].y = 54;
+    GT[3].w = 16;
+    GT[3].h = 20;
+
+    GT[4].score = 115;
+    GT[4].x = 10;
+    GT[4].y = 10;
+    GT[4].w = 14;
+    GT[4].h = 19;
+    
+    GT[5].score = 114;
+    GT[5].x = 1;
+    GT[5].y = 37;
+    GT[5].w = 11;
+    GT[5].h = 13;
+
+    int c=0;
+
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive){
+            INF[c].score = boundbxs->bbs[counter].score;
+            INF[c].x = boundbxs->bbs[counter].x;
+            INF[c].y = boundbxs->bbs[counter].y;
+            INF[c].w = boundbxs->bbs[counter].w;
+            INF[c++].h = boundbxs->bbs[counter].h;
+        }
+    }
+    for(int i=0;i<6; i++){
+        if(INF[i].score < GT[i].score - 5 || INF[i].score > GT[i].score + 5){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].x < GT[i].x - 1 || INF[i].x > GT[i].x + 1){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].y < GT[i].y - 1 || INF[i].y > GT[i].y + 1){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].w < GT[i].w - 1 || INF[i].w > GT[i].w + 1){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].h < GT[i].h - 1 || INF[i].h > GT[i].h + 1){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+    }
+    #endif
+    
+    #ifdef INPUT_RAW_FILE
+    bbox_t GT[2];
+    bbox_t INF[2];
+
+    GT[0].score = 121;
+    GT[0].x = 41;
+    GT[0].y = 55;
+    GT[0].w = 10;
+    GT[0].h = 12;
+
+    GT[1].score = 118;
+    GT[1].x = 14;
+    GT[1].y = 30;
+    GT[1].w = 10;
+    GT[1].h = 10;
+
+    int c=0;
+
+    for (int counter=0;counter< boundbxs->num_bb;counter++){
+        if(boundbxs->bbs[counter].alive){
+            INF[c].score = boundbxs->bbs[counter].score;
+            INF[c].x = boundbxs->bbs[counter].x;
+            INF[c].y = boundbxs->bbs[counter].y;
+            INF[c].w = boundbxs->bbs[counter].w;
+            INF[c++].h = boundbxs->bbs[counter].h;
+        }
+    }
+    for(int i=0;i<2; i++){
+        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].x < GT[i].x - 2 || INF[i].x > GT[i].x + 2){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].y < GT[i].y - 2 || INF[i].y > GT[i].y + 2){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].w < GT[i].w - 2 || INF[i].w > GT[i].w + 2){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+        if(INF[i].h < GT[i].h - 2 || INF[i].h > GT[i].h + 2){
+            printf("Error in CI Checks...\n");
+            pmsis_exit(-1);
+        }
+    }
+
+    #endif
+}
 
 
 static void RunNN()
@@ -236,7 +388,8 @@ static void RunNN()
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
 
-    for(int i=0;i<MAX_BB;i++) out_boxes[i].alive=0;
+    //for(int i=0;i<MAX_BB;i++) out_boxes[i].alive=0;
+    bbxs.num_bb = 0;
 
     lynredCNN(ImageInChar, output_1,output_2,output_3);
 
@@ -244,31 +397,53 @@ static void RunNN()
 
     for(int i=0;i<10;i++)
     {
-
+        //output_1 is bounding box ccordinates
+        //output_2 is class number
+        //output_3 is score
         if(output_2[i]==1 && output_3[i]!=0)
         {
-            out_boxes[i].alive=1;
-            out_boxes[i].class=output_2[i];
-            out_boxes[i].score=output_3[i];
-            out_boxes[i].x=(output_1[4*i+1]*lynred_Output_1_OUT_SCALE)*80;
-            out_boxes[i].y=(output_1[4*i]*lynred_Output_1_OUT_SCALE)*80;
-            out_boxes[i].w=((output_1[4*i+3]-output_1[4*i+1])*lynred_Output_1_OUT_SCALE)*80;
-            out_boxes[i].h=((output_1[4*i+2]-output_1[4*i])*lynred_Output_1_OUT_SCALE)*80;
-
-            if(out_boxes[i].alive && (out_boxes[i].score > SCORE_THR))
+            bbxs.bbs[i].alive=1;
+            bbxs.bbs[i].score=output_3[i];
+            bbxs.bbs[i].class=output_2[i];
+            bbxs.bbs[i].x = (output_1[4*i+1]*lynred_Output_1_OUT_SCALE)*80;
+            bbxs.bbs[i].y = (output_1[4*i]*lynred_Output_1_OUT_SCALE)*80;
+            bbxs.bbs[i].w = ((output_1[4*i+3]-output_1[4*i+1])*lynred_Output_1_OUT_SCALE)*80;
+            bbxs.bbs[i].h = ((output_1[4*i+2]-output_1[4*i])*lynred_Output_1_OUT_SCALE)*80;
+            bbxs.num_bb++;
+/*            if(bbxs.bbs[i].score > SCORE_THR)
             {
-                int box_x = out_boxes[i].x;
-                int box_y = out_boxes[i].y;
-                int box_w = out_boxes[i].w;
-                int box_h = out_boxes[i].h;
-                PRINTF("BBOX (x, y, w, h): (%d, %d, %d, %d) SCORE: %f\n", box_x, box_y, box_w, box_h, FIX2FP(out_boxes[i].score,7));
+                int box_x = bbxs.bbs[i].x;
+                int box_y = bbxs.bbs[i].y;
+                int box_w = bbxs.bbs[i].w;
+                int box_h = bbxs.bbs[i].h;
+                PRINTF("BBOX (x, y, w, h): (%d, %d, %d, %d) SCORE: %f\n", box_x, box_y, box_w, box_h, FIX2FP(bbxs.bbs[i].score,7));
             }
-        }
+*/        }
     }
+
+    #if !defined SILENT
+    printBboxes(&bbxs);
+    #endif
+
 
     PRINTF("Cycles NN : %10d\n",ti_nn);
     
 }
+
+
+            uint32_t x;
+    uint32_t y;
+    uint32_t w;
+    uint32_t h;
+    int16_t score;
+    uint16_t class;
+    uint8_t alive;
+        
+        
+        
+        
+        
+        
 
 
 char bleDetString[200];
@@ -629,8 +804,7 @@ void peopleDetection(void)
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
         unsigned char *img_out_ptr = ImageIn;
-        //for(int i=0;i<W*H;i++) img_out_ptr[i] = (uint8_t) (ImageIn[i] >> (INPUT1_Q - 8));
-        drawBboxes(out_boxes,img_out_ptr,80,80);
+        drawBboxes(&bbxs,img_out_ptr);
         WriteImageToFile(string_buffer, W, H, img_out_ptr);
         save_index++;
         #endif
@@ -638,7 +812,7 @@ void peopleDetection(void)
         #if defined USE_BLE
         sendResultsToBle(&bbxs);
         #ifndef SAVE_TO_PC
-        //pi_time_wait_us(2 * 1000 * 1000);
+        pi_time_wait_us(2 * 1000 * 1000);
         #endif
         #endif
 
@@ -653,6 +827,11 @@ void peopleDetection(void)
 
     // Close the cluster
     pi_cluster_close(&cluster_dev);
+
+    #ifdef CI
+    CI_checks(&bbxs);
+    #endif
+
 
     PRINTF("Ended\n");
     pmsis_exit(0);
