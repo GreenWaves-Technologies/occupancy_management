@@ -898,7 +898,7 @@ void peopleDetection(void)
         //    printf("Error allocating L1 for cluster...\n");
         //    pmsis_exit(-1);
         //}
-        
+        task->stacks = pmsis_l1_malloc(STACK_SIZE+SLAVE_STACK_SIZE*7);
         lynred_L1_Memory = pmsis_l1_malloc(_lynred_L1_Memory_SIZE);
 
         pi_cluster_send_task_to_cl(&cluster_dev, task);
@@ -906,6 +906,7 @@ void peopleDetection(void)
         //Same as above
         //lynredCNN_Destruct(1);
         pmsis_l1_malloc_free(lynred_L1_Memory,_lynred_L1_Memory_SIZE);
+        pmsis_l1_malloc_free(task->stacks,STACK_SIZE+SLAVE_STACK_SIZE*7);
 
         #ifdef SAVE_TO_PC
         char string_buffer[50];
