@@ -59,6 +59,12 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 #endif
 
 
+char bleDetString[200];
+char tmpString[200];
+int dt;
+int old_dt;
+float thres=SCORE_THR;
+
 #define FIX2FP(Val, Precision)    ((float) (Val) / (float) (1<<(Precision)))
 
 PI_L2 bbox_t *out_boxes;
@@ -388,7 +394,7 @@ static void RunNN()
     ti = gap_cl_readhwtimer();
 
     bbxs.num_bb = 0;
-    lynredCNN(ImageInChar, output_3,output_1,output_2);
+    lynredCNN(ImageInChar, output_1, output_2,output_3);
     ti_nn = gap_cl_readhwtimer()-ti;
 
     for(int i=0;i<10;i++)
@@ -396,7 +402,8 @@ static void RunNN()
         //output_1 is bounding box ccordinates
         //output_2 is class number
         //output_3 is score
-        if(output_2[i]==1 && output_3[i]>SCORE_THR)
+        printf("%d %f\n",output_3[i],output_3[i]*lynred_Output_1_OUT_SCALE);
+        if(output_2[i]==1 && output_3[i]*lynred_Output_1_OUT_SCALE>thres)
         {
             bbxs.bbs[i].alive=1;
             bbxs.bbs[i].score=output_3[i];
@@ -418,17 +425,13 @@ static void RunNN()
     
 }
 
-char bleDetString[200];
-char tmpString[200];
-int dt;
-int old_dt;
-float thres;
+
 void sendResultsToBle(bboxs_t *boundbxs){
 
     int stringLenght = 0;
     int AliveBBs=0;
     for (int counter=0;counter< boundbxs->num_bb;counter++){
-        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score*lynred_Output_1_OUT_SCALE>= thres){
             AliveBBs++;
         }
     }
@@ -437,11 +440,11 @@ void sendResultsToBle(bboxs_t *boundbxs){
     stringLenght+=sprintf(bleDetString,"%d;",AliveBBs);
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
-        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score*lynred_Output_1_OUT_SCALE>= thres){
 
-            boundbxs->bbs[counter].x = boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
-            boundbxs->bbs[counter].y = boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
-            stringLenght+=sprintf(tmpString,"%dx%d;",boundbxs->bbs[counter].x, boundbxs->bbs[counter].y);
+            int x = (int)boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
+            int y = (int)boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
+            stringLenght+=sprintf(tmpString,"%dx%d;",x, y);
             strcat(bleDetString,tmpString);
         }
     }
@@ -458,7 +461,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
     if(dt<10)dt=10;
     if(dt!=old_dt){
         old_dt=dt;
-        thres = ((float)old_dt)/100;
+        thres = ((float)old_dt)/100.;
     }
 }
 
@@ -636,8 +639,8 @@ void peopleDetection(void)
         pmsis_exit(-7);
     }
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
-    pi_freq_set(PI_FREQ_DOMAIN_CL,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     PRINTF("Init NN\n");
     if(initNN())
@@ -704,7 +707,8 @@ void peopleDetection(void)
         PRINTF("Alloc Error! \n");
         pmsis_exit(-7);
     }
-    memset(task, 0, sizeof(struct pi_cluster_task));
+    pi_cluster_task(task,NULL,NULL);
+    //memset(task, 0, sizeof(struct pi_cluster_task));
     task->entry = RunNN;
     task->arg = (void *) NULL;
     task->stack_size = (uint32_t) STACK_SIZE;
@@ -719,22 +723,21 @@ void peopleDetection(void)
         iterate=0;
         #else
         PRINTF("Taking Picture!\n");
-        pi_gpio_pin_write(NULL, USER_GPIO, 0);
+        //pi_gpio_pin_write(NULL, USER_GPIO, 0);
         
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
         pi_camera_capture(&cam, ImageIn, W*H*sizeof(int16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
-        pi_gpio_pin_write(NULL, USER_GPIO , 1);
+        //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         #endif
 
         #ifndef INPUT_FILE
 
         PRINTF("Calling shutterless filtering\n");
+        int tm = pi_time_get_us();
         //The shutterless floating point version was done just for reference...very slow on gap.
         //if(float_shutterless(ImageIn, img_offset,W,H,8,1)){
 
-        int tm = pi_time_get_us();
-        
         if(fixed_shutterless(ImageIn, img_offset,W,H,8)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);

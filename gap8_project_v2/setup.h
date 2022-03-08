@@ -27,4 +27,4 @@
 #define NON_MAX_THRES 70
 #define MAX_BB 300
 
-#define SCORE_THR (FP2FIX(0.73,7))
+#define SCORE_THR (0.73)
