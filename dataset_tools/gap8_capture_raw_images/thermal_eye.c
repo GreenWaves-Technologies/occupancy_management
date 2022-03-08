@@ -28,7 +28,7 @@
 
 
 #define NUM_OFFSET_IMG 5
-#define TIME_DELAY_OFFSET_IMG 5
+#define TIME_DELAY_OFFSET_IMG 1
 
 #define NUM_TEST_IMG 5
 
