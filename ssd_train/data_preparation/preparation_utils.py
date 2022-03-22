@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan 31 16:14:35 2020
@@ -15,36 +14,36 @@ class Input_Exception(Exception):
     pass
 
 class data_division:
-    
+
 
     def __init__(self, annotations_path, percentages, shuffling_info):
-        
-        
+
+
         '''
         Inputs:
-            
-            
-            - annotations_path: the path to annotations csv file path 
 
-            
+
+            - annotations_path: the path to annotations csv file path
+
+
             - percentages: samples are being divided into train, validatin, test, and fine_tuning divisions according to assigned percentages.
-            
+
                 e.g., percentages = {'train': 70, 'val': 10, 'test': 10, 'train_fine_tuning':10, 'val_fine_tuning':10, 'test_fine_tuning':10}
-        
+
             - shuffling_info: to shuffle sample before division.
-            
+
                 e.g., shuffling_info   = {'INCLUDE': True, 'random_seed': 1000, 'num_shuffles': 1000}
-        
-        
+
+
         Outputs:
-            
+
             exported dataframes in csv format including selected samples for each task (train, val, etc.)
-        
-        
-        
+
+
+
         '''
         ########################################
-        # check valididty of the annotation path 
+        # check valididty of the annotation path
         if not (isinstance(annotations_path, str)):
             raise Input_Exception('\n\n Data division process: the given file path for annotations is not <str> type.\n\n')
         if not os.path.isfile(annotations_path):
@@ -67,7 +66,7 @@ class data_division:
             raise Input_Exception('\n\n Data division process: Percentages info dict values has a summation of more than 100%.\n\n')
         # percentages info is valid
         self.percentages = percentages
-        
+
         ########################################
         # shuffeling info
         required_keys_for_shuffling_info_dict= ('INCLUDE', 'random_seed', 'num_shuffles')
@@ -86,45 +85,45 @@ class data_division:
         # percentages info is valid
         self.shuffling_info = shuffling_info
         ########################################
-        
-    
-    
-    
-        ########################################    
+
+
+
+
+        ########################################
         # annotations, dataframe
         annotations_df = pd.read_csv(self.annotations_path)
         # annotations_df = pd.read_csv(self.annotations_path, names=['image_name','xmin', 'xmax','ymin', 'ymax', 'class_id'])
-        
+
         # suffling
         if not (shuffling_info['random_seed'] is None):random.seed(shuffling_info['random_seed'])
         uframe = list(annotations_df.image_name.unique())
         num_images = len(uframe)
         if shuffling_info['INCLUDE']:
             for i in range(shuffling_info['num_shuffles']): random.shuffle(uframe)
-    
-    
+
+
         ########################################
         # selections
-        
+
         train_per    = percentages['train']
         val_per      = percentages['val']
         test_per     = percentages['test']
         train_ft_per = percentages['train_fine_tuning']
         val_ft_per   = percentages['val_fine_tuning']
         test_ft_per  = percentages['test_fine_tuning']
-       
-        
-        
-        
-        
+
+
+
+
+
         x = PrettyTable()
         print_width = 10
-                
+
         x.field_names = ['set', 'percentages (%)', 'starting', 'ending', 'num_samples', 'selection precentages']
-        
+
         # train
         take_from, take_to = (0, int(train_per * num_images/100))
-        train_frames = uframe[take_from:take_to]       
+        train_frames = uframe[take_from:take_to]
         x.add_row( ['{0: <{width}}'.format('train', width=print_width), train_per,\
                     take_from, take_to-1, (take_to-take_from),\
                     round((take_to-take_from)/num_images,2)])
@@ -143,13 +142,13 @@ class data_division:
             take_from, take_to-1, (take_to-take_from),\
             round((take_to-take_from)/num_images,2)])
 
-        # fine-tuning train 
+        # fine-tuning train
         take_from, take_to = (take_to, take_to+int(train_ft_per * num_images/100))
         train_ft_frames   = uframe[take_from:take_to]
         x.add_row( ['{0: <{width}}'.format('train fine-tuning', width=print_width), train_ft_per,\
             take_from, take_to-1, (take_to-take_from),\
             round((take_to-take_from)/num_images,2)])
-        
+
         # fine-tuning val
         take_from, take_to = (take_to, take_to+int(val_ft_per * num_images/100))
         val_ft_frames   = uframe[take_from:take_to]
@@ -157,28 +156,28 @@ class data_division:
             take_from, take_to-1, (take_to-take_from),\
             round((take_to-take_from)/num_images,2)])
 
-    
+
         # fine-tuning test
         take_from, take_to = (take_to, take_to+int(test_ft_per * num_images/100))
         test_ft_frames   = uframe[take_from:take_to]
         x.add_row( ['{0: <{width}}'.format('test fine-tuning', width=print_width), test_ft_per,\
             take_from, take_to-1, (take_to-take_from),\
             round((take_to-take_from)/num_images,2)])
-        
-    
+
+
         print(x)
-    
+
         # correct order of columns
         columnsOrder = ['image_name', 'xmin', 'xmax', 'ymin', 'ymax', 'class_id']
-        
+
         ########################################
-        # take samples 
+        # take samples
         #
         # train
         train_indices = annotations_df.image_name.infer_objects().isin(train_frames)
         train_data = annotations_df[train_indices]
         self.train_data = train_data[columnsOrder]
-        # 
+        #
         # validation
         val_indices = annotations_df.image_name.infer_objects().isin(val_frames)
         val_data = annotations_df[val_indices]
@@ -199,21 +198,21 @@ class data_division:
         val_fine_tuning_indices = annotations_df.image_name.infer_objects().isin(val_ft_frames)
         val_fine_tuning_data = annotations_df[val_fine_tuning_indices]
         self.val_fine_tuning_data = val_fine_tuning_data[columnsOrder]
-        
-        
-        
+
+
+
         # fine tuning samples for test
         test_fine_tuning_indices = annotations_df.image_name.infer_objects().isin(test_ft_frames)
         test_fine_tuning_data    = annotations_df[test_fine_tuning_indices]
         self.test_fine_tuning_data = test_fine_tuning_data[columnsOrder]
-        
-        
+
+
         ########################################
         # export the sample information
         export_path = os.path.dirname(self.annotations_path)
-        self.train_data.to_csv(os.path.join(export_path,'train_data.csv'), index = False) 
-        self.val_data.to_csv(os.path.join(export_path,'val_data.csv'), index = False) 
-        self.test_data.to_csv(os.path.join(export_path,'test_data.csv'), index = False) 
-        self.train_fine_tuning_data.to_csv(os.path.join(export_path,'train_fine_tuning_data.csv'), index = False) 
-        self.val_fine_tuning_data.to_csv(os.path.join(export_path,'val_fine_tuning_data.csv'), index = False) 
-        self.test_fine_tuning_data.to_csv(os.path.join(export_path,'test_fine_tuning_data.csv'), index = False) 
+        self.train_data.to_csv(os.path.join(export_path,'train_data.csv'), index = False)
+        self.val_data.to_csv(os.path.join(export_path,'val_data.csv'), index = False)
+        self.test_data.to_csv(os.path.join(export_path,'test_data.csv'), index = False)
+        self.train_fine_tuning_data.to_csv(os.path.join(export_path,'train_fine_tuning_data.csv'), index = False)
+        self.val_fine_tuning_data.to_csv(os.path.join(export_path,'val_fine_tuning_data.csv'), index = False)
+        self.test_fine_tuning_data.to_csv(os.path.join(export_path,'test_fine_tuning_data.csv'), index = False)
