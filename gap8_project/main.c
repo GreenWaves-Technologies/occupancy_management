@@ -104,7 +104,7 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
 
     pi_readfs_conf_init(&fsconf);
     fsconf.fs.flash = flash;
-    
+
     pi_open_from_conf(fs, &fsconf);
 
     if (pi_fs_mount(fs)){
@@ -247,7 +247,7 @@ void CI_checks(bboxs_t *boundbxs){
     GT[1].y = 56;
     GT[1].w = 18;
     GT[1].h = 22;
-    
+
     GT[2].score = 32720;
     GT[2].x = 50;
     GT[2].y = 5;
@@ -287,7 +287,7 @@ void CI_checks(bboxs_t *boundbxs){
         }
     }
     #endif
-    
+
     #ifdef INPUT_RAW_FILE
     bbox_t GT[2];
     bbox_t INF[2];
@@ -663,12 +663,12 @@ void go_to_sleep(){
 
 
 int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w, int h, uint8_t q_output){
-    
+
     int16_t min,max;
     int16_t out_min = 0;
     int32_t out_max = 255;
     int32_t out_space = (out_max-out_min);
-   
+
     //Optmized shutterless running on cluster (cluster must be open ahead and have enough free memory)
     int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,30,&min,&max);
     //Calling shutterless running on fabric controller
@@ -689,9 +689,9 @@ int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int min,max;
     int32_t out_min = 0;
     int32_t out_max = 255;
-    
-    int error = shutterless_float(img_input_fp16,img_offset_fp16,30,&min,&max);    
-        
+
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,30,&min,&max);
+
     for(int i=0;i<w*h;i++){
         img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
         img_input_fp16[i]= img_input_fp16[i] << (q_output-8);
@@ -728,7 +728,7 @@ void peopleDetection(void)
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    
+
     unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(int16_t));
     if (ImageInChar == 0)
     {
@@ -763,6 +763,7 @@ void peopleDetection(void)
 
     /* Configure And open cluster. */
     struct pi_cluster_conf cl_conf;
+    pi_cluster_conf_init(&cl_conf);
     cl_conf.id = 0;
     pi_open_from_conf(&cluster_dev, (void *) &cl_conf);
     if (pi_cluster_open(&cluster_dev))
@@ -883,7 +884,7 @@ void peopleDetection(void)
             pmsis_exit(-8);
         }
 
-        
+
         pi_perf_stop();
         tm = pi_time_get_us() - tm;
         PRINTF("Shutterless %f us\n", ((float)tm)/1000);
@@ -892,7 +893,7 @@ void peopleDetection(void)
         PRINTF("Call cluster\n");
         //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         //Calling warm constructor to allocate only L1
-        
+
         //This call is giving issues still need to be investigated
         //if(lynredCNN_Construct(1)){
         //    printf("Error allocating L1 for cluster...\n");

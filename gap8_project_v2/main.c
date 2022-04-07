@@ -95,7 +95,7 @@ extern L1_CL_MEM AT_L1_POINTER lynred_L1_Memory;
 void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
 {
     struct pi_readfs_conf fsconf;
-    
+
     /* Init & open flash. */
     #if defined(QSPI)
     struct pi_spiflash_conf flash_conf;
@@ -114,9 +114,9 @@ void open_flash_filesystem(struct pi_device *flash, struct pi_device *fs)
     pi_readfs_conf_init(&fsconf);
 
     fsconf.fs.flash = flash;
-    
+
     pi_open_from_conf(fs, &fsconf);
-    
+
     if (pi_fs_mount(fs)){
         printf("Error FS mounting !\n");
         pmsis_exit(-2);
@@ -272,7 +272,7 @@ void CI_checks(bboxs_t *boundbxs){
     GT[2].y = 15;
     GT[2].w = 17;
     GT[2].h = 22;
-    
+
     GT[5].score = 116;
     GT[5].x = 17;
     GT[5].y = 54;
@@ -284,7 +284,7 @@ void CI_checks(bboxs_t *boundbxs){
     GT[1].y = 10;
     GT[1].w = 14;
     GT[1].h = 19;
-    
+
     GT[4].score = 114;
     GT[4].x = 1;
     GT[4].y = 37;
@@ -325,7 +325,7 @@ void CI_checks(bboxs_t *boundbxs){
         }
     }
     #endif
-    
+
     #ifdef INPUT_RAW_FILE
     bbox_t GT[2];
     bbox_t INF[2];
@@ -422,7 +422,7 @@ static void RunNN()
     #endif
 
     PRINTF("Cycles NN : %10d\n",ti_nn);
-    
+
 }
 
 
@@ -535,13 +535,13 @@ void go_to_sleep(){
 
 
 int32_t fixed_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w, int h, uint8_t q_output){
-    
+
     int16_t min,max;
     int16_t out_min = 0;
     int32_t out_max = 255;
     int32_t out_space = (out_max-out_min);
     uint8_t *img_input_fp8=img_input_fp16;
-   
+
     //Optmized shutterless running on cluster (cluster must be open ahead and have enough free memory)
     int error = shutterless_fixed_cl(&cluster_dev,img_input_fp16,img_offset_fp16,40,&min,&max);
     //Calling shutterless running on fabric controller
@@ -563,9 +563,9 @@ int32_t float_shutterless(int16_t* img_input_fp16,int16_t* img_offset_fp16,int w
     int32_t out_min = 0;
     int32_t out_max = 255;
     uint8_t *img_input_fp8=img_input_fp16;
-    
-    int error = shutterless_float(img_input_fp16,img_offset_fp16,40,&min,&max);    
-        
+
+    int error = shutterless_float(img_input_fp16,img_offset_fp16,40,&min,&max);
+
     for(int i=0;i<w*h;i++){
         img_input_fp16[i]= (int16_t)((out_max-out_min)* (pow(((float)img_input_fp16[i]-min)/(max-min),gamma) + out_min)) ;
         img_input_fp8[i]= img_input_fp16[i] << (q_output-8);
@@ -602,7 +602,7 @@ void peopleDetection(void)
     unsigned int save_index=0;
     PRINTF("Entering main controller\n");
 
-    
+
     ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H* sizeof(short int));
     if (ImageInChar == 0)
     {
@@ -631,6 +631,7 @@ void peopleDetection(void)
 
     /* Configure And open cluster. */
     struct pi_cluster_conf cl_conf;
+    pi_cluster_conf_init(&cl_conf);
     cl_conf.id = 0;
     pi_open_from_conf(&cluster_dev, (void *) &cl_conf);
     if (pi_cluster_open(&cluster_dev))
@@ -724,7 +725,7 @@ void peopleDetection(void)
         #else
         PRINTF("Taking Picture!\n");
         //pi_gpio_pin_write(NULL, USER_GPIO, 0);
-        
+
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
         pi_camera_capture(&cam, ImageIn, W*H*sizeof(int16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
@@ -745,7 +746,7 @@ void peopleDetection(void)
 
         tm = pi_time_get_us() - tm;
         PRINTF("Shutterless %.02f ms\n", ((float)tm)/1000);
-        
+
         #endif
         PRINTF("Call cluster\n");
         //Explicitly allocating Cluster stack since it could also be used by shutterless
@@ -759,7 +760,7 @@ void peopleDetection(void)
 
         lynredCNN_Destruct(1);
         pmsis_l1_malloc_free(task->stacks,STACK_SIZE+SLAVE_STACK_SIZE*7);
-        
+
         #ifdef SAVE_TO_PC
         char string_buffer[50];
         sprintf(string_buffer, "../../../dump_out_imgs/img_%04ld.pgm", save_index);
