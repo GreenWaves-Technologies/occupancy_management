@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include "BleNotifier.h"
-#include "Gap.h"
 #include "lynredKernels.h"
 #include "SSDKernels.h"
 #include "SSDParams.h"
