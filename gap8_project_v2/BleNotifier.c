@@ -34,9 +34,9 @@ int initHandler()
 {
 
     int status=1;
-    #ifdef __GAP8__
+/*    #ifdef __GAP8__
     pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_UART_RX_PAD_FUNC);
-    #endif
+    #endif*/
     PRINTF("Enabling BLE module...\n");
 
     int32_t errors = 0;
@@ -76,18 +76,18 @@ int initHandler()
 
     /* Wait 50 ms. */
     pi_time_wait_us(50 * 1000);
-    #ifdef __GAP8__
+/*    #ifdef __GAP8__
     pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
-    #endif
+    #endif*/
     return errors;
 }
 
 uint8_t handleDetections(char* name,int size)
 {
-    #ifdef __GAP8__
+    /*#ifdef __GAP8__
     pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_UART_RX_PAD_FUNC);    
     #endif
-    //insert start marker
+    *///insert start marker
     message[0]= START_MESSAGE;
     int i;
     for(i = 0; i < size; i++)
@@ -103,9 +103,9 @@ uint8_t handleDetections(char* name,int size)
     pi_ble_data_get(&ble, &detection_threshold, 1);
     
     PRINTF("Ble receiving: %d\n",detection_threshold);
-    #ifdef __GAP8__
+    /*#ifdef __GAP8__
     pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
-    #endif
+    #endif*/
     return detection_threshold;
 }
 

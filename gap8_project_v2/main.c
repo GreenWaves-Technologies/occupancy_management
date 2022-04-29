@@ -59,6 +59,12 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
 #endif
 
 
+char bleDetString[200];
+char tmpString[200];
+int dt;
+int old_dt;
+float thres=SCORE_THR;
+
 #define FIX2FP(Val, Precision)    ((float) (Val) / (float) (1<<(Precision)))
 
 PI_L2 bbox_t *out_boxes;
@@ -249,17 +255,17 @@ void CI_checks(bboxs_t *boundbxs){
     #ifdef INPUT_FILE
     bbox_t GT[6];
     bbox_t INF[6];
-    GT[0].score = 120;
-    GT[0].x = 40;
-    GT[0].y = 61;
-    GT[0].w = 17;
-    GT[0].h = 17;
+    GT[3].score = 120;
+    GT[3].x = 40;
+    GT[3].y = 61;
+    GT[3].w = 17;
+    GT[3].h = 17;
 
-    GT[1].score = 119;
-    GT[1].x = 31;
-    GT[1].y = 2;
-    GT[1].w = 14;
-    GT[1].h = 21;
+    GT[0].score = 119;
+    GT[0].x = 31;
+    GT[0].y = 2;
+    GT[0].w = 14;
+    GT[0].h = 21;
 
     GT[2].score = 116;
     GT[2].x = 53;
@@ -267,23 +273,23 @@ void CI_checks(bboxs_t *boundbxs){
     GT[2].w = 17;
     GT[2].h = 22;
     
-    GT[3].score = 116;
-    GT[3].x = 17;
-    GT[3].y = 54;
-    GT[3].w = 16;
-    GT[3].h = 20;
+    GT[5].score = 116;
+    GT[5].x = 17;
+    GT[5].y = 54;
+    GT[5].w = 16;
+    GT[5].h = 20;
 
-    GT[4].score = 115;
-    GT[4].x = 10;
-    GT[4].y = 10;
-    GT[4].w = 14;
-    GT[4].h = 19;
+    GT[1].score = 115;
+    GT[1].x = 10;
+    GT[1].y = 10;
+    GT[1].w = 14;
+    GT[1].h = 19;
     
-    GT[5].score = 114;
-    GT[5].x = 1;
-    GT[5].y = 37;
-    GT[5].w = 11;
-    GT[5].h = 13;
+    GT[4].score = 114;
+    GT[4].x = 1;
+    GT[4].y = 37;
+    GT[4].w = 13;
+    GT[4].h = 13;
 
     int c=0;
 
@@ -297,24 +303,24 @@ void CI_checks(bboxs_t *boundbxs){
         }
     }
     for(int i=0;i<6; i++){
-        if(INF[i].score < GT[i].score - 5 || INF[i].score > GT[i].score + 5){
-            printf("Error in CI Checks...\n");
+        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
+            printf("Error in Scores %d %d CI Checks...\n",INF[i].score, GT[i].score);
             pmsis_exit(-1);
         }
-        if(INF[i].x < GT[i].x - 1 || INF[i].x > GT[i].x + 1){
-            printf("Error in CI Checks...\n");
+        if(INF[i].x < GT[i].x - 3 || INF[i].x > GT[i].x + 3){
+            printf("Error in x coord %d %d CI Checks...\n",INF[i].x, GT[i].x);
             pmsis_exit(-1);
         }
-        if(INF[i].y < GT[i].y - 1 || INF[i].y > GT[i].y + 1){
-            printf("Error in CI Checks...\n");
+        if(INF[i].y < GT[i].y - 3 || INF[i].y > GT[i].y + 3){
+            printf("Error in y coord CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].w < GT[i].w - 1 || INF[i].w > GT[i].w + 1){
-            printf("Error in CI Checks...\n");
+        if(INF[i].w < GT[i].w - 3 || INF[i].w > GT[i].w + 3){
+            printf("Error in w size CI Checks...\n");
             pmsis_exit(-1);
         }
-        if(INF[i].h < GT[i].h - 1 || INF[i].h > GT[i].h + 1){
-            printf("Error in CI Checks...\n");
+        if(INF[i].h < GT[i].h - 3 || INF[i].h > GT[i].h + 3){
+            printf("Error in h size CI Checks...\n");
             pmsis_exit(-1);
         }
     }
@@ -388,23 +394,24 @@ static void RunNN()
     ti = gap_cl_readhwtimer();
 
     bbxs.num_bb = 0;
-    lynredCNN(ImageInChar, output_1,output_2,output_3);
+    lynredCNN(ImageInChar, output_3,output_1, output_2);
     ti_nn = gap_cl_readhwtimer()-ti;
 
     for(int i=0;i<10;i++)
     {
-        //output_1 is bounding box ccordinates
+        //output_1 is bounding box coordinates
         //output_2 is class number
         //output_3 is score
-        if(output_2[i]==1 && output_3[i]!=0)
+        //printf("%d %f\n",output_3[i],output_3[i]*lynred_Output_1_OUT_SCALE);
+        if(output_2[i]==1 && output_3[i]*lynred_Output_1_OUT_SCALE>thres)
         {
             bbxs.bbs[i].alive=1;
             bbxs.bbs[i].score=output_3[i];
             bbxs.bbs[i].class=output_2[i];
-            bbxs.bbs[i].x = (output_1[4*i+1]*lynred_Output_1_OUT_SCALE)*80;
-            bbxs.bbs[i].y = (output_1[4*i]*lynred_Output_1_OUT_SCALE)*80;
-            bbxs.bbs[i].w = ((output_1[4*i+3]-output_1[4*i+1])*lynred_Output_1_OUT_SCALE)*80;
-            bbxs.bbs[i].h = ((output_1[4*i+2]-output_1[4*i])*lynred_Output_1_OUT_SCALE)*80;
+            bbxs.bbs[i].x = (output_1[4*i+1]*lynred_Output_2_OUT_SCALE)*80;
+            bbxs.bbs[i].y = (output_1[4*i]*lynred_Output_2_OUT_SCALE)*80;
+            bbxs.bbs[i].w = ((output_1[4*i+3]-output_1[4*i+1])*lynred_Output_2_OUT_SCALE)*80;
+            bbxs.bbs[i].h = ((output_1[4*i+2]-output_1[4*i])*lynred_Output_2_OUT_SCALE)*80;
             bbxs.num_bb++;
 
         }
@@ -418,17 +425,13 @@ static void RunNN()
     
 }
 
-char bleDetString[200];
-char tmpString[200];
-int dt;
-int old_dt;
-float thres;
+
 void sendResultsToBle(bboxs_t *boundbxs){
 
     int stringLenght = 0;
     int AliveBBs=0;
     for (int counter=0;counter< boundbxs->num_bb;counter++){
-        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score*lynred_Output_1_OUT_SCALE>= thres){
             AliveBBs++;
         }
     }
@@ -437,11 +440,11 @@ void sendResultsToBle(bboxs_t *boundbxs){
     stringLenght+=sprintf(bleDetString,"%d;",AliveBBs);
 
     for (int counter=0;counter< boundbxs->num_bb;counter++){
-        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score>= FP2FIX(thres,7)){
+        if(boundbxs->bbs[counter].alive && boundbxs->bbs[counter].score*lynred_Output_1_OUT_SCALE>= thres){
 
-            boundbxs->bbs[counter].x = boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
-            boundbxs->bbs[counter].y = boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
-            stringLenght+=sprintf(tmpString,"%dx%d;",boundbxs->bbs[counter].x, boundbxs->bbs[counter].y);
+            int x = (int)boundbxs->bbs[counter].x + (boundbxs->bbs[counter].w/2);
+            int y = (int)boundbxs->bbs[counter].y + (boundbxs->bbs[counter].h/2);
+            stringLenght+=sprintf(tmpString,"%dx%d;",x, y);
             strcat(bleDetString,tmpString);
         }
     }
@@ -458,7 +461,7 @@ void sendResultsToBle(bboxs_t *boundbxs){
     if(dt<10)dt=10;
     if(dt!=old_dt){
         old_dt=dt;
-        thres = ((float)old_dt)/100;
+        thres = ((float)old_dt)/100.;
     }
 }
 
@@ -628,6 +631,7 @@ void peopleDetection(void)
 
     /* Configure And open cluster. */
     struct pi_cluster_conf cl_conf;
+    pi_cluster_conf_init(&cl_conf);
     cl_conf.id = 0;
     pi_open_from_conf(&cluster_dev, (void *) &cl_conf);
     if (pi_cluster_open(&cluster_dev))
@@ -636,8 +640,8 @@ void peopleDetection(void)
         pmsis_exit(-7);
     }
 
-    pi_freq_set(PI_FREQ_DOMAIN_FC,250000000);
-    pi_freq_set(PI_FREQ_DOMAIN_CL,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_FC,150000000);
+    pi_freq_set(PI_FREQ_DOMAIN_CL,175000000);
 
     PRINTF("Init NN\n");
     if(initNN())
@@ -704,7 +708,8 @@ void peopleDetection(void)
         PRINTF("Alloc Error! \n");
         pmsis_exit(-7);
     }
-    memset(task, 0, sizeof(struct pi_cluster_task));
+    pi_cluster_task(task,NULL,NULL);
+    //memset(task, 0, sizeof(struct pi_cluster_task));
     task->entry = RunNN;
     task->arg = (void *) NULL;
     task->stack_size = (uint32_t) STACK_SIZE;
@@ -719,22 +724,21 @@ void peopleDetection(void)
         iterate=0;
         #else
         PRINTF("Taking Picture!\n");
-        pi_gpio_pin_write(NULL, USER_GPIO, 0);
+        //pi_gpio_pin_write(NULL, USER_GPIO, 0);
         
         pi_camera_control(&cam, PI_CAMERA_CMD_START, 0);
         pi_camera_capture(&cam, ImageIn, W*H*sizeof(int16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
-        pi_gpio_pin_write(NULL, USER_GPIO , 1);
+        //pi_gpio_pin_write(NULL, USER_GPIO , 1);
         #endif
 
         #ifndef INPUT_FILE
 
         PRINTF("Calling shutterless filtering\n");
+        int tm = pi_time_get_us();
         //The shutterless floating point version was done just for reference...very slow on gap.
         //if(float_shutterless(ImageIn, img_offset,W,H,8,1)){
 
-        int tm = pi_time_get_us();
-        
         if(fixed_shutterless(ImageIn, img_offset,W,H,8)){
             PRINTF("Error Calling prefiltering, exiting...\n");
             pmsis_exit(-8);

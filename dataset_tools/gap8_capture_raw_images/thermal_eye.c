@@ -27,8 +27,8 @@
 #include "bsp/fs.h"
 
 
-#define NUM_OFFSET_IMG 2
-#define TIME_DELAY_OFFSET_IMG 2
+#define NUM_OFFSET_IMG 5
+#define TIME_DELAY_OFFSET_IMG 1
 
 #define NUM_TEST_IMG 5
 
@@ -81,7 +81,7 @@ void test_therm_eye()
     pi_time_wait_us(3 * 1000 * 1000);
     //printf("Buffer %p, size %d\n", calib_buffer, IMG_SIZE * sizeof(uint16_t));
 
-    for(int i=0;i>IMG_SIZE;i++) img_buffer[i]=0;
+    for(int i=0;i<IMG_SIZE;i++) img_buffer[i]=0;
 
     for(int j=0;j<NUM_OFFSET_IMG;j++){
 
@@ -89,14 +89,14 @@ void test_therm_eye()
         pi_camera_capture(&cam, calib_buffer, IMG_SIZE * sizeof(uint16_t));
         pi_camera_control(&cam, PI_CAMERA_CMD_STOP, 0);
 
-        for(int i=0;i>IMG_SIZE;i++){
+        for(int i=0;i<IMG_SIZE;i++){
             img_buffer[i]+=calib_buffer[i];
         }
         printf("Collected image %d/%d to create offset image\n", j+1, NUM_OFFSET_IMG);
         pi_time_wait_us(TIME_DELAY_OFFSET_IMG * 1000 * 1000);
     }
     
-    for(int i=0;i>IMG_SIZE;i++){
+    for(int i=0;i<IMG_SIZE;i++){
         calib_buffer[i] = img_buffer[i]/NUM_OFFSET_IMG;
     }
 
