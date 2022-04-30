@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include "BleNotifier.h"
-#include "Gap.h"
 #include "lynredKernels.h"
 #include "pmsis.h"
 #include "bsp/bsp.h"
@@ -261,11 +260,11 @@ void CI_checks(bboxs_t *boundbxs){
     GT[3].w = 17;
     GT[3].h = 17;
 
-    GT[0].score = 119;
-    GT[0].x = 31;
-    GT[0].y = 2;
-    GT[0].w = 14;
-    GT[0].h = 21;
+    GT[1].score = 119;
+    GT[1].x = 31;
+    GT[1].y = 2;
+    GT[1].w = 14;
+    GT[1].h = 21;
 
     GT[2].score = 116;
     GT[2].x = 53;
@@ -279,11 +278,11 @@ void CI_checks(bboxs_t *boundbxs){
     GT[5].w = 16;
     GT[5].h = 20;
 
-    GT[1].score = 115;
-    GT[1].x = 10;
-    GT[1].y = 10;
-    GT[1].w = 14;
-    GT[1].h = 19;
+    GT[0].score = 115;
+    GT[0].x = 10;
+    GT[0].y = 10;
+    GT[0].w = 14;
+    GT[0].h = 19;
     
     GT[4].score = 114;
     GT[4].x = 1;
