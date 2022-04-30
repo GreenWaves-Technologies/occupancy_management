@@ -254,11 +254,11 @@ void CI_checks(bboxs_t *boundbxs){
     #ifdef INPUT_FILE
     bbox_t GT[6];
     bbox_t INF[6];
-    GT[3].score = 120;
-    GT[3].x = 40;
-    GT[3].y = 61;
-    GT[3].w = 17;
-    GT[3].h = 17;
+    GT[4].score = 120;
+    GT[4].x = 40;
+    GT[4].y = 61;
+    GT[4].w = 17;
+    GT[4].h = 17;
 
     GT[1].score = 119;
     GT[1].x = 31;
@@ -284,11 +284,11 @@ void CI_checks(bboxs_t *boundbxs){
     GT[0].w = 14;
     GT[0].h = 19;
     
-    GT[4].score = 114;
-    GT[4].x = 1;
-    GT[4].y = 37;
-    GT[4].w = 13;
-    GT[4].h = 13;
+    GT[3].score = 114;
+    GT[3].x = 1;
+    GT[3].y = 37;
+    GT[3].w = 13;
+    GT[3].h = 13;
 
     int c=0;
 
