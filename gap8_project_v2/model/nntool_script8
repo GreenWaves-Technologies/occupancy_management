@@ -8,7 +8,7 @@ set l3_ram_ext_managed True
 set l2_ram_ext_managed False
 set graph_reorder_constant_in true
 set graph_const_exec_from_flash true
-set graph_warm_construct true
+set graph_warm_construct 1
 set input_norm_func "x: x"
 #ssd_setter max_bb_before_nms 200
 #set graph_trace_exec true

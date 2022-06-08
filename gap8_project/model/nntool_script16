@@ -8,7 +8,7 @@ set l3_ram_ext_managed True
 set l2_ram_ext_managed False
 set graph_reorder_constant_in true
 set graph_const_exec_from_flash true
-set graph_warm_construct true
+set graph_warm_construct 1
 #This line is to dump all layer output
 #set graph_dump_tensor 7
 save_state
