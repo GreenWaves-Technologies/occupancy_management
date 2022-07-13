@@ -306,12 +306,13 @@ void CI_checks(bboxs_t *boundbxs){
         // Check if INF[gt_i] box is in the GT
         int ok = 0;
         for(int gt_i=0; gt_i<6; gt_i++){
-            if ((INF[i].score > GT[gt_i].score - 10 && INF[i].score > GT[gt_i].score + 10) &&
+            if ((INF[i].score > GT[gt_i].score - 10 && INF[i].score < GT[gt_i].score + 10) &&
                 (INF[i].x > GT[gt_i].x - 3 && INF[i].x < GT[gt_i].x + 3) &&
                 (INF[i].y > GT[gt_i].y - 3 && INF[i].y < GT[gt_i].y + 3) &&
                 (INF[i].w > GT[gt_i].w - 3 && INF[i].w < GT[gt_i].w + 3) &&
-                (INF[i].h > GT[gt_i].h - 3 && INF[i].h < GT[gt_i].h + 3))
+                (INF[i].h > GT[gt_i].h - 3 && INF[i].h < GT[gt_i].h + 3)) {
                 ok = 1;
+            }
         }
         if (!ok) {
             printf("Box (%d %d %d %d score: %d) not present in Ground Truth list\n", INF[i].x, INF[i].y, INF[i].w, INF[i].h, INF[i].score);
