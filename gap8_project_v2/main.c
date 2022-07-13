@@ -302,25 +302,19 @@ void CI_checks(bboxs_t *boundbxs){
             INF[c++].h = boundbxs->bbs[counter].h;
         }
     }
-    for(int i=0;i<6; i++){
-        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
-            printf("Error in Scores %d %d CI Checks...\n",INF[i].score, GT[i].score);
-            pmsis_exit(-1);
+    for (int i=0; i<6; i++) {
+        // Check if INF[gt_i] box is in the GT
+        int ok = 0;
+        for(int gt_i=0; gt_i<6; gt_i++){
+            if ((INF[i].score > GT[gt_i].score - 10 && INF[i].score > GT[gt_i].score + 10) &&
+                (INF[i].x > GT[gt_i].x - 3 && INF[i].x < GT[gt_i].x + 3) &&
+                (INF[i].y > GT[gt_i].y - 3 && INF[i].y < GT[gt_i].y + 3) &&
+                (INF[i].w > GT[gt_i].w - 3 && INF[i].w < GT[gt_i].w + 3) &&
+                (INF[i].h > GT[gt_i].h - 3 && INF[i].h < GT[gt_i].h + 3))
+                ok = 1;
         }
-        if(INF[i].x < GT[i].x - 3 || INF[i].x > GT[i].x + 3){
-            printf("Error in x coord %d %d CI Checks...\n",INF[i].x, GT[i].x);
-            pmsis_exit(-1);
-        }
-        if(INF[i].y < GT[i].y - 3 || INF[i].y > GT[i].y + 3){
-            printf("Error in y coord CI Checks...\n");
-            pmsis_exit(-1);
-        }
-        if(INF[i].w < GT[i].w - 3 || INF[i].w > GT[i].w + 3){
-            printf("Error in w size CI Checks...\n");
-            pmsis_exit(-1);
-        }
-        if(INF[i].h < GT[i].h - 3 || INF[i].h > GT[i].h + 3){
-            printf("Error in h size CI Checks...\n");
+        if (!ok) {
+            printf("Box (%d %d %d %d score: %d) not present in Ground Truth list\n", INF[i].x, INF[i].y, INF[i].w, INF[i].h, INF[i].score);
             pmsis_exit(-1);
         }
     }
