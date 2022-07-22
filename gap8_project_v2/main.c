@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include "BleNotifier.h"
-#include "Gap.h"
 #include "lynredKernels.h"
 #include "pmsis.h"
 #include "bsp/bsp.h"
@@ -255,41 +254,42 @@ void CI_checks(bboxs_t *boundbxs){
     #ifdef INPUT_FILE
     bbox_t GT[6];
     bbox_t INF[6];
-    GT[3].score = 120;
-    GT[3].x = 40;
-    GT[3].y = 61;
-    GT[3].w = 17;
-    GT[3].h = 17;
 
-    GT[0].score = 119;
-    GT[0].x = 31;
-    GT[0].y = 2;
+    GT[0].score = 115;
+    GT[0].x = 10;
+    GT[0].y = 10;
     GT[0].w = 14;
-    GT[0].h = 21;
+    GT[0].h = 19;
+
+    GT[1].score = 119;
+    GT[1].x = 31;
+    GT[1].y = 2;
+    GT[1].w = 14;
+    GT[1].h = 21;
 
     GT[2].score = 116;
     GT[2].x = 53;
     GT[2].y = 15;
     GT[2].w = 17;
     GT[2].h = 22;
-    
-    GT[5].score = 116;
-    GT[5].x = 17;
-    GT[5].y = 54;
-    GT[5].w = 16;
-    GT[5].h = 20;
 
-    GT[1].score = 115;
-    GT[1].x = 10;
-    GT[1].y = 10;
-    GT[1].w = 14;
-    GT[1].h = 19;
-    
+    GT[3].score = 120;
+    GT[3].x = 40;
+    GT[3].y = 61;
+    GT[3].w = 17;
+    GT[3].h = 17;
+
     GT[4].score = 114;
     GT[4].x = 1;
     GT[4].y = 37;
     GT[4].w = 13;
     GT[4].h = 13;
+
+    GT[5].score = 116;
+    GT[5].x = 17;
+    GT[5].y = 54;
+    GT[5].w = 16;
+    GT[5].h = 20;
 
     int c=0;
 
@@ -302,25 +302,20 @@ void CI_checks(bboxs_t *boundbxs){
             INF[c++].h = boundbxs->bbs[counter].h;
         }
     }
-    for(int i=0;i<6; i++){
-        if(INF[i].score < GT[i].score - 10 || INF[i].score > GT[i].score + 10){
-            printf("Error in Scores %d %d CI Checks...\n",INF[i].score, GT[i].score);
-            pmsis_exit(-1);
+    for (int i=0; i<6; i++) {
+        // Check if INF[gt_i] box is in the GT
+        int ok = 0;
+        for(int gt_i=0; gt_i<6; gt_i++){
+            if ((INF[i].score > GT[gt_i].score - 10 && INF[i].score < GT[gt_i].score + 10) &&
+                (INF[i].x > GT[gt_i].x - 3 && INF[i].x < GT[gt_i].x + 3) &&
+                (INF[i].y > GT[gt_i].y - 3 && INF[i].y < GT[gt_i].y + 3) &&
+                (INF[i].w > GT[gt_i].w - 3 && INF[i].w < GT[gt_i].w + 3) &&
+                (INF[i].h > GT[gt_i].h - 3 && INF[i].h < GT[gt_i].h + 3)) {
+                ok = 1;
+            }
         }
-        if(INF[i].x < GT[i].x - 3 || INF[i].x > GT[i].x + 3){
-            printf("Error in x coord %d %d CI Checks...\n",INF[i].x, GT[i].x);
-            pmsis_exit(-1);
-        }
-        if(INF[i].y < GT[i].y - 3 || INF[i].y > GT[i].y + 3){
-            printf("Error in y coord CI Checks...\n");
-            pmsis_exit(-1);
-        }
-        if(INF[i].w < GT[i].w - 3 || INF[i].w > GT[i].w + 3){
-            printf("Error in w size CI Checks...\n");
-            pmsis_exit(-1);
-        }
-        if(INF[i].h < GT[i].h - 3 || INF[i].h > GT[i].h + 3){
-            printf("Error in h size CI Checks...\n");
+        if (!ok) {
+            printf("Box (%d %d %d %d score: %d) not present in Ground Truth list\n", INF[i].x, INF[i].y, INF[i].w, INF[i].h, INF[i].score);
             pmsis_exit(-1);
         }
     }
@@ -394,15 +389,15 @@ static void RunNN()
     ti = gap_cl_readhwtimer();
 
     bbxs.num_bb = 0;
-    lynredCNN(ImageInChar, output_1, output_2,output_3);
+    lynredCNN(ImageInChar, output_3,output_1, output_2);
     ti_nn = gap_cl_readhwtimer()-ti;
 
     for(int i=0;i<10;i++)
     {
-        //output_1 is bounding box ccordinates
+        //output_1 is bounding box coordinates
         //output_2 is class number
         //output_3 is score
-        printf("%d %f\n",output_3[i],output_3[i]*lynred_Output_1_OUT_SCALE);
+        //printf("%d %f\n",output_3[i],output_3[i]*lynred_Output_1_OUT_SCALE);
         if(output_2[i]==1 && output_3[i]*lynred_Output_1_OUT_SCALE>thres)
         {
             bbxs.bbs[i].alive=1;
@@ -631,6 +626,7 @@ void peopleDetection(void)
 
     /* Configure And open cluster. */
     struct pi_cluster_conf cl_conf;
+    pi_cluster_conf_init(&cl_conf);
     cl_conf.id = 0;
     pi_open_from_conf(&cluster_dev, (void *) &cl_conf);
     if (pi_cluster_open(&cluster_dev))

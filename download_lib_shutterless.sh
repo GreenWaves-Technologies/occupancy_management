@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ${SHUTTERLESS_LIB} | wget --no-use-server-timestamps --base=`cat $SHUTTERLESS_LIB_URL` --input-file=- -O gap8_project/shutterless/libshutterless.a
 if [ $? != 0 ]; then

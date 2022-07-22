@@ -12,7 +12,7 @@ set l3_ram_ext_managed True
 set l2_ram_ext_managed False
 set graph_reorder_constant_in true
 set graph_const_exec_from_flash true
-set graph_warm_construct true
+set graph_warm_construct 1
 #set graph_produce_node_names true
 #set graph_produce_operinfos true
 #set graph_monitor_cycles true

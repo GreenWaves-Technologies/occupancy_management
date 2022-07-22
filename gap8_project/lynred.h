@@ -3,6 +3,7 @@
 #define __LYNRED_H__
 
 #include "lynredInfo.h"
+#include "Gap.h"
 
 #if defined(QSPI)
 extern AT_QSPIFLASH_FS_EXT_ADDR_TYPE lynred_L3_Flash;
